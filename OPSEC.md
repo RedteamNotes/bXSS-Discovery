@@ -13,7 +13,7 @@ This project is designed for authorized discovery. The main operational risk is 
 
 Search engines may log query strings, IP address, account context, browser metadata, and timing. Avoid searching private client names, internal-only hostnames, ticket identifiers, or sensitive data unless the engagement rules permit it.
 
-When comparing search coverage, change one variable at a time. Keep the template and filters stable while switching between Google, Bing, and DuckDuckGo so notes and later review remain understandable.
+When comparing search coverage, change one variable at a time. Keep the template and filters stable while switching between Google, Bing, DuckDuckGo, and Baidu so notes and later review remain understandable. The app adapts query syntax per engine; do not assume an operator that works in one engine has the same meaning in another.
 
 ## Browser Hygiene
 

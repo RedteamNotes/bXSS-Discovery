@@ -557,19 +557,23 @@
             font-size: 14px;
             font-weight: 950;
             line-height: 1.25;
-            text-align: right;
+            text-align: left;
         }
 
         .engine-switch {
-            display: grid;
-            gap: 8px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 8px 14px;
+            min-width: 0;
         }
 
         .engine-option {
             display: flex;
             align-items: center;
             gap: 9px;
-            min-height: 30px;
+            min-height: 28px;
             color: var(--muted);
             font-size: 13px;
             font-weight: 800;
@@ -679,12 +683,26 @@
             background: var(--surface);
         }
 
+        .engine-parameter {
+            grid-column: 1 / -1;
+            grid-template-columns: 1fr;
+            align-items: start;
+            gap: 10px;
+            padding: 10px 12px;
+        }
+
         .parameter-head {
             display: flex;
             align-items: baseline;
             justify-content: space-between;
             gap: 12px;
             min-width: 0;
+        }
+
+        .engine-parameter .parameter-head {
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
         }
 
         .parameter-head .engine-card-kicker,
@@ -1235,12 +1253,12 @@
 
         .query-box {
             min-height: clamp(190px, 27vh, 320px);
-            padding: 16px;
+            padding: 18px;
             resize: vertical;
             color: color-mix(in srgb, var(--teal) 84%, var(--text));
             font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
-            font-size: 15px;
-            line-height: 1.7;
+            font-size: clamp(22px, 1.5vw, 30px);
+            line-height: 1.5;
         }
 
         .action-grid {
@@ -1464,6 +1482,14 @@
                 grid-template-columns: 1fr;
             }
 
+            .engine-parameter {
+                grid-template-columns: 1fr;
+            }
+
+            .engine-switch {
+                justify-content: flex-start;
+            }
+
             .topbar {
                 padding: 0 16px;
             }
@@ -1639,7 +1665,7 @@
                                 <i class="fa-solid fa-sliders" aria-hidden="true"></i>
                             </div>
                             <div class="launch-card-body query-parameters">
-                                <div class="parameter-block">
+                                <div class="parameter-block engine-parameter">
                                     <div class="parameter-head">
                                         <span class="engine-card-kicker" id="engineCardLabel">Search engine</span>
                                         <strong class="engine-card-name" id="engineCardName">Search with Google</strong>
@@ -1657,6 +1683,10 @@
                                             <input type="checkbox" data-engine="duck" aria-label="DuckDuckGo">
                                             <span>DuckDuckGo</span>
                                         </label>
+                                        <label class="engine-option">
+                                            <input type="checkbox" data-engine="baidu" aria-label="Baidu">
+                                            <span>Baidu</span>
+                                        </label>
                                     </div>
                                 </div>
 
@@ -1671,7 +1701,7 @@
                                         </label>
                                         <label class="option-line" for="paramToggle">
                                             <input id="paramToggle" type="checkbox">
-                                            <span id="paramLabel">Bias toward parameterized and form-like URLs</span>
+                                            <span id="paramLabel">Bias toward form and submission URLs</span>
                                         </label>
                                         <label class="option-line" for="freshToggle">
                                             <input id="freshToggle" type="checkbox">
@@ -2502,7 +2532,7 @@
                     resetFilters: "Reset filters",
                     themeTip: "Toggle theme",
                     noise: "Reduce docs, blog, press, and policy pages",
-                    param: "Bias toward parameterized and form-like URLs",
+                    param: "Bias toward form and submission URLs",
                     fresh: "Add a recent-results bias for triage",
                     searchPlaceholder: "Filter templates, category, match type...",
                     discover: "Discover",
@@ -2548,7 +2578,7 @@
                         scope: scope => [`site:${scope}`, "Limits results to the authorized domain. This is the guardrail that keeps the search inside scope."],
                         template: dork => [dork.query, `Searches for the selected ${dork.category} surface using title, URL, or page-text matches.`],
                         noise: ["-inurl:blog -inurl:docs -inurl:press -inurl:privacy -inurl:terms", "Removes common informational pages so form-like results are easier to triage."],
-                        param: ['(inurl:"?" OR inurl:"=" OR inurl:"form")', "Adds a bias toward URLs that look parameterized or form-driven."],
+                        param: ["(inurl:form OR inurl:submit OR inurl:request)", "Adds a bias toward URLs that look form- or submission-driven."],
                         fresh: ["after:2024-01-01", "Prefers more recent indexed pages for faster triage."],
                         engine: engine => [engine, "Controls where the query opens. Different engines index different pages, so comparing engines can reveal gaps."]
                     },
@@ -2618,7 +2648,7 @@
                     resetFilters: "重置筛选",
                     themeTip: "切换主题",
                     noise: "降低文档、博客、新闻、政策页噪音",
-                    param: "偏向带参数或表单特征的 URL",
+                    param: "偏向表单和提交类 URL",
                     fresh: "加入近期结果偏向，便于分诊",
                     searchPlaceholder: "筛选模板、分类、匹配位置...",
                     discover: "发现",
@@ -2664,7 +2694,7 @@
                         scope: scope => [`site:${scope}`, "把结果限制在授权域名内，这是避免越界搜索的第一层约束。"],
                         template: dork => [dork.query, `根据所选的 ${categoryLabel(dork.category)} 场景，用标题、路径或正文匹配寻找候选入口。`],
                         noise: ["-inurl:blog -inurl:docs -inurl:press -inurl:privacy -inurl:terms", "排除常见信息页，让表单类结果更容易被分诊。"],
-                        param: ['(inurl:"?" OR inurl:"=" OR inurl:"form")', "额外偏向带查询参数或表单路径特征的页面。"],
+                        param: ["(inurl:form OR inurl:submit OR inurl:request)", "额外偏向表单、提交或请求类路径。"],
                         fresh: ["after:2024-01-01", "偏向较新的索引结果，适合快速摸清当前暴露面。"],
                         engine: engine => [engine, "决定查询在哪个搜索引擎打开。不同引擎索引范围不同，可用于交叉确认。"]
                     },
@@ -2734,7 +2764,7 @@
                     resetFilters: "Réinitialiser les filtres",
                     themeTip: "Changer de thème",
                     noise: "Réduire les pages docs, blog, presse et politiques",
-                    param: "Favoriser les URL paramétrées ou proches de formulaires",
+                    param: "Favoriser les URL de formulaire et de soumission",
                     fresh: "Ajouter un biais vers des résultats récents",
                     searchPlaceholder: "Filtrer modèles, catégories, zones de correspondance...",
                     discover: "Découvrir",
@@ -2780,7 +2810,7 @@
                         scope: scope => [`site:${scope}`, "Limite les résultats au domaine autorisé. C'est le garde-fou principal du périmètre."],
                         template: dork => [dork.query, `Recherche la surface ${categoryLabel(dork.category)} sélectionnée via titres, URL ou texte visible.`],
                         noise: ["-inurl:blog -inurl:docs -inurl:press -inurl:privacy -inurl:terms", "Écarte les pages informatives courantes afin de faciliter le triage des pages de type formulaire."],
-                        param: ['(inurl:"?" OR inurl:"=" OR inurl:"form")', "Ajoute un biais vers les URL paramétrées ou orientées formulaire."],
+                        param: ["(inurl:form OR inurl:submit OR inurl:request)", "Ajoute un biais vers les chemins de formulaire ou de soumission."],
                         fresh: ["after:2024-01-01", "Favorise les pages indexées récemment pour accélérer le triage."],
                         engine: engine => [engine, "Choisit le moteur qui ouvrira la requête. Les moteurs n'indexent pas toujours les mêmes pages."]
                     },
@@ -2831,7 +2861,8 @@
             const engines = {
                 google: query => `https://www.google.com/search?q=${encodeURIComponent(query)}`,
                 bing: query => `https://www.bing.com/search?q=${encodeURIComponent(query)}`,
-                duck: query => `https://duckduckgo.com/?q=${encodeURIComponent(query)}`
+                duck: query => `https://duckduckgo.com/?q=${encodeURIComponent(query)}`,
+                baidu: query => `https://www.baidu.com/s?wd=${encodeURIComponent(query)}`
             };
 
             const engineMeta = {
@@ -2846,6 +2877,53 @@
                 duck: {
                     label: "DuckDuckGo",
                     shortLabel: "Duck"
+                },
+                baidu: {
+                    label: "Baidu",
+                    shortLabel: "Baidu"
+                }
+            };
+
+            const engineSyntaxProfiles = {
+                google: {
+                    sitePlacement: "prefix",
+                    supportsOr: true,
+                    titleOperator: "intitle",
+                    urlOperator: "inurl",
+                    textOperator: "intext",
+                    noiseMode: "url",
+                    parameterMode: "google",
+                    freshOperator: "after"
+                },
+                bing: {
+                    sitePlacement: "prefix",
+                    supportsOr: true,
+                    titleOperator: "intitle",
+                    urlOperator: "",
+                    textOperator: "inbody",
+                    noiseMode: "not",
+                    parameterMode: "plain",
+                    freshOperator: ""
+                },
+                duck: {
+                    sitePlacement: "prefix",
+                    supportsOr: false,
+                    titleOperator: "intitle",
+                    urlOperator: "inurl",
+                    textOperator: "",
+                    noiseMode: "plainMinus",
+                    parameterMode: "url",
+                    freshOperator: ""
+                },
+                baidu: {
+                    sitePlacement: "suffix",
+                    supportsOr: false,
+                    titleOperator: "intitle",
+                    urlOperator: "inurl",
+                    textOperator: "",
+                    noiseMode: "plainMinus",
+                    parameterMode: "url",
+                    freshOperator: ""
                 }
             };
 
@@ -3281,59 +3359,38 @@
 
             function buildCompactAnalysisItems(selected) {
                 const scope = isValidScope(state.scope) ? state.scope : "redteamnotes.com";
-                const hasIntitle = selected.query.includes("intitle:");
-                const hasInurl = selected.query.includes("inurl:");
-                const hasIntext = selected.query.includes("intext:");
-                const hasOperators = [
-                    hasIntitle ? "intitle" : "",
-                    hasInurl ? "inurl" : "",
-                    hasIntext ? "intext" : ""
-                ].filter(Boolean).join(" / ");
+                const engine = state.engine;
+                const meta = getEngineMeta(engine);
+                const core = buildEngineTemplateCore(selected, engine);
+                const fields = describeEngineFields(selected, engine);
+                const modifiers = buildEngineModifiers(engine);
 
                 if (state.lang === "zh") {
                     const items = [
                         {
                             code: `site:${scope}`,
-                            text: `这段把搜索结果限制在授权域名内，是整条查询的边界控制。之所以先写它，是为了避免把同名品牌、第三方帮助中心、招聘平台或无关资产混进结果里。人工判断时要看最终打开的地址是否仍在授权范围内：如果项目只允许 app.redteamnotes.com，就不要用根域泛搜；如果允许 redteamnotes.com 及其子域，再用根域更合适。`
+                            text: `这段把搜索结果限制在授权域名内，是整条查询的边界控制。这样写是为了避免把同名品牌、第三方帮助中心、招聘平台或无关资产混进结果里；Baidu 适配时会把 site 放到命令末尾，但含义不变。人工判断时要看最终打开的地址是否仍在授权范围内：如果项目只允许 app.redteamnotes.com，就不要用根域泛搜；如果允许 redteamnotes.com 及其子域，再用根域更合适。`
                         },
                         {
-                            code: selected.query,
-                            text: `这段是当前模板的核心匹配块，目标是寻找「${dorkTitle(selected)}」这类可能接收用户输入的入口。它不是在验证漏洞，而是在把搜索结果收窄到可能被后台人员、客服、销售、招聘、审核或运营系统查看的页面。人工判断时重点看页面是否真的有可控输入，例如文本框、描述字段、邮箱、姓名、URL、附件上传、评论、问题说明或富文本内容。`
+                            code: core,
+                            text: `这段是当前模板在 ${meta.label} 下的可执行匹配块，目标是寻找「${dorkTitle(selected)}」这类可能接收用户输入的入口。它不是在验证漏洞，而是在把搜索结果收窄到可能被后台人员、客服、销售、招聘、审核或运营系统查看的页面。人工判断时重点看页面是否真的有可控输入，例如文本框、描述字段、邮箱、姓名、URL、附件上传、评论、问题说明或富文本内容；如果只是帮助文章、政策页或没有提交动作的静态页，就不要因为关键词命中而提高优先级。`
                         },
                         {
-                            code: hasOperators || "匹配组合",
-                            text: `这里的匹配位置决定命中质量：intitle 更偏向页面目的，标题里出现联系、工单、申请、报告时相关性通常较高；inurl 更偏向功能路径，像 /submit、/request-demo、/support/tickets/new 这类路径往往比普通文章更值得看；intext 覆盖更宽，能抓到“上传附件”“问题描述”等表单文案，但也更容易命中文档和教程。人工分诊时不要只看关键词，要结合标题、URL、摘要和页面控件一起判断。`
-                        },
-                        {
-                            code: "A OR B OR C",
-                            text: `OR 让多个同义词、路径变体或模板文案共用一个查询，任意一个命中都能返回结果。这样写是因为真实站点命名不统一，同一个入口可能叫 contact-us、contact_us、submit request、send feedback 或 new ticket。人工判断时，OR 命中越多不代表越重要；更重要的是命中的那个词是否出现在功能路径、表单标题或可提交页面附近。`
+                            code: fields,
+                            text: engineSyntaxExplanation(engine, selected, "zh")
                         }
                     ];
 
-                    if (state.options.reduceNoise) {
+                    modifiers.forEach(modifier => {
                         items.push({
-                            code: "-inurl:blog -inurl:docs -inurl:press -inurl:privacy -inurl:terms",
-                            text: "这些排除项用于压低博客、文档、新闻稿、隐私政策和服务条款等信息页的权重。这样写是因为这些页面经常包含 contact、support、report 等词，但通常没有真正的提交入口。人工判断时如果结果太少，可以先关闭降噪再比较；如果结果很多且大多是文章，就保持开启。"
+                            code: modifier.code,
+                            text: modifierExplanation(modifier, engine, "zh")
                         });
-                    }
-
-                    if (state.options.paramBias) {
-                        items.push({
-                            code: '(inurl:"?" OR inurl:"=" OR inurl:"form")',
-                            text: "参数偏向会让查询更关注带查询参数、等号或 form 路径的页面。这样写是因为参数化页面经常意味着存在动态处理、筛选状态或表单流程。人工判断时要注意现代单页应用不一定暴露 ? 或 =，所以这个选项适合扩展分诊，不适合作为唯一判断标准。"
-                        });
-                    }
-
-                    if (state.options.freshBias) {
-                        items.push({
-                            code: "after:2024-01-01",
-                            text: "近期偏向让结果更接近当前仍在使用的页面。这样写适合快速摸清现有暴露面，而不是追溯旧入口。人工判断时要知道搜索引擎索引日期不等于页面上线日期，它只能作为优先级参考，不能替代页面状态确认。"
-                        });
-                    }
+                    });
 
                     items.push({
-                        code: state.engine,
-                        text: `搜索引擎选择会影响结果覆盖面。Google、Bing、DuckDuckGo 的索引不同，同一条查询可能暴露不同入口。人工操作时建议一次只改一个变量：先固定模板换引擎，再固定引擎换模板，这样队列备注和后续复盘会更清楚。`
+                        code: meta.label,
+                        text: `当前命令按 ${meta.label} 的语法边界生成，而不是把 Google dork 原样复制过去。这样做是为了减少无效算符造成的假精确感：Google 保留 OR、intitle、inurl、intext 和 after；Bing 使用 site、intitle、inbody、OR、NOT，并把 URL 片段降级成精确短语；DuckDuckGo 使用 site、intitle、inurl 和减号排除；Baidu 使用 intitle、inurl、site，并避免 OR、intext、after 这类不可靠写法。人工操作时建议一次只改一个变量：先固定模板换引擎，再固定引擎换模板，这样队列备注和复盘会更清楚。`
                     });
 
                     items.push({
@@ -3345,44 +3402,340 @@
                 }
 
                 if (state.lang === "fr") {
-                    return [
+                    const items = [
                         {
                             code: `site:${scope}`,
-                            text: `Ce bloc limite les résultats au périmètre autorisé. Il évite de mélanger des actifs tiers, des portails SaaS ou des pages de marque similaires. Lors du triage, vérifiez toujours que l'URL finale reste dans le périmètre défini.`
+                            text: `Ce bloc limite les résultats au périmètre autorisé. Il évite de mélanger des actifs tiers, des portails SaaS ou des pages de marque similaires; avec Baidu, le même bloc peut être placé à la fin de la requête. Au triage, vérifiez toujours que l'URL finale reste dans le périmètre défini, surtout après une redirection.`
                         },
                         {
-                            code: selected.query,
-                            text: `Ce bloc cherche des surfaces de type ${dorkTitle(selected)}. Il ne valide pas une faille; il réduit les résultats vers des pages susceptibles de collecter une saisie utilisateur et d'être relues par support, vente, RH ou opérations.`
+                            code: core,
+                            text: `Ce bloc est la version compatible ${meta.label} du modèle ${dorkTitle(selected)}. Il ne valide pas une faille; il réduit les résultats vers des pages susceptibles de collecter une saisie utilisateur et d'être relues par support, vente, RH, confiance, marketing ou opérations. Vérifiez ensuite qu'il existe bien un champ, une pièce jointe, un commentaire, une demande, un ticket ou un flux de soumission.`
                         },
                         {
-                            code: hasOperators || "zones de correspondance",
-                            text: `intitle cible l'intention de la page, inurl révèle souvent une route fonctionnelle, et intext capte des indices visibles comme pièce jointe ou description. Pour juger un résultat, combinez titre, URL, extrait et présence réelle d'un formulaire.`
-                        },
+                            code: fields,
+                            text: engineSyntaxExplanation(engine, selected, "fr")
+                        }
+                    ];
+
+                    modifiers.forEach(modifier => {
+                        items.push({
+                            code: modifier.code,
+                            text: modifierExplanation(modifier, engine, "fr")
+                        });
+                    });
+
+                    items.push({
+                        code: meta.label,
+                        text: `La requête est adaptée au moteur sélectionné au lieu de réutiliser aveuglément une syntaxe Google. Google conserve OR, intitle, inurl, intext et after; Bing utilise site, intitle, inbody, OR et NOT, avec les fragments d'URL en expressions exactes; DuckDuckGo reste sur site, intitle, inurl et l'exclusion par tiret; Baidu utilise intitle, inurl et site sans ajouter OR, intext ou after. Pour comparer proprement, changez un seul paramètre à la fois.`
+                    });
+
+                    items.push(
                         {
                             code: "title + URL + snippet",
                             text: `Avant d'ouvrir, notez les signaux forts: request, ticket, upload, callback, resume, review ou report dans l'URL ou l'extrait. Les pages statiques, politiques, PDF et articles sans action de soumission ont une priorité plus faible.`
                         }
-                    ];
+                    );
+
+                    return items;
                 }
 
-                return [
+                const items = [
                     {
                         code: `site:${scope}`,
-                        text: `This block restricts results to the authorized domain. It is written first because it prevents similarly named brands, third-party portals, and unrelated assets from entering discovery. During manual review, re-check the final URL after redirects and use the exact host when the assessment scope is narrow.`
+                        text: `This block restricts results to the authorized domain. It prevents similarly named brands, third-party portals, and unrelated assets from entering discovery; Baidu may place the same site constraint at the end of the query. During manual review, re-check the final URL after redirects and use the exact host when the assessment scope is narrow.`
                     },
                     {
-                        code: selected.query,
-                        text: `This is the template match block for ${dorkTitle(selected)}. It does not validate a vulnerability; it narrows public results toward pages that may collect user input and route it to staff, ticketing, CRM, hiring, review, or operations systems.`
+                        code: core,
+                        text: `This is the ${meta.label}-compatible match block for ${dorkTitle(selected)}. It does not validate a vulnerability; it narrows public results toward pages that may collect user input and route it to staff, ticketing, CRM, hiring, review, trust, or operations systems. Manually confirm that the page truly accepts controlled input such as text, URLs, attachments, resumes, reviews, comments, questions, or issue descriptions.`
                     },
                     {
-                        code: hasOperators || "match mix",
-                        text: `The match fields control confidence: intitle usually reflects page intent, inurl often exposes functional routes, and intext catches form wording such as attachments or descriptions but can be noisier. Judge results by combining title, URL, snippet, and whether the page truly accepts user-controlled input.`
-                    },
+                        code: fields,
+                        text: engineSyntaxExplanation(engine, selected, "en")
+                    }
+                ];
+
+                modifiers.forEach(modifier => {
+                    items.push({
+                        code: modifier.code,
+                        text: modifierExplanation(modifier, engine, "en")
+                    });
+                });
+
+                items.push({
+                    code: meta.label,
+                    text: `The command is adapted to the selected engine instead of blindly reusing Google syntax. Google keeps OR, intitle, inurl, intext, and after; Bing uses site, intitle, inbody, OR, and NOT while downgrading URL fragments to exact phrases; DuckDuckGo uses site, intitle, inurl, and minus exclusions; Baidu uses intitle, inurl, and site without adding OR, intext, or after. Change one variable at a time when comparing engines.`
+                });
+
+                items.push(
                     {
                         code: "title + URL + snippet",
                         text: `Before opening every result, score it from the search page. Strong candidates mention submit, request, ticket, apply, report, upload, callback, resume, or review near the URL or snippet. Static articles, PDFs, policies, and pages without a submit action are lower priority.`
                     }
+                );
+
+                return items;
+            }
+
+            function getEngineSyntaxProfile(engine) {
+                return engineSyntaxProfiles[engine] || engineSyntaxProfiles.google;
+            }
+
+            function parseTemplateTerms(query) {
+                const terms = {
+                    intitle: [],
+                    inurl: [],
+                    intext: []
+                };
+                const re = /\b(intitle|inurl|intext):"([^"]+)"/g;
+                let match;
+
+                while ((match = re.exec(query))) {
+                    terms[match[1]].push(match[2]);
+                }
+
+                return terms;
+            }
+
+            function uniqueValues(values) {
+                return [...new Set(values.filter(Boolean))];
+            }
+
+            function quotePhrase(value) {
+                return `"${String(value).replace(/"/g, "").trim()}"`;
+            }
+
+            function operatorToken(value) {
+                const weak = new Set(["a", "an", "the", "to", "our", "us", "your", "for", "of", "and", "or", "now", "new", "create", "send", "submit", "request", "form", "page", "center", "support"]);
+                const tokens = String(value)
+                    .toLowerCase()
+                    .replace(/https?:\/\//g, "")
+                    .match(/[a-z0-9_-]+/g) || [];
+
+                return tokens.find(token => token.length > 2 && !weak.has(token)) || tokens.find(token => token.length > 2) || tokens[0] || "";
+            }
+
+            function buildEngineTemplateCore(dork, engine = state.engine) {
+                if (!dork) return "select a template";
+                const profile = getEngineSyntaxProfile(engine);
+
+                if (engine === "google") {
+                    return dork.query;
+                }
+
+                if (engine === "bing") {
+                    return buildBingTemplateCore(dork);
+                }
+
+                return buildFocusedTemplateCore(dork, profile);
+            }
+
+            function buildBingTemplateCore(dork) {
+                const terms = parseTemplateTerms(dork.query);
+                const parts = [
+                    ...terms.intitle.map(term => `intitle:${operatorToken(term)}`),
+                    ...terms.inurl.map(term => quotePhrase(term)),
+                    ...terms.intext.map(term => `inbody:${operatorToken(term)}`)
                 ];
+                const unique = uniqueValues(parts).slice(0, 9);
+
+                if (unique.length > 1) {
+                    return `(${unique.join(" OR ")})`;
+                }
+
+                return unique[0] || fallbackTemplatePhrase(terms);
+            }
+
+            function buildFocusedTemplateCore(dork, profile) {
+                const terms = parseTemplateTerms(dork.query);
+                const titleToken = terms.intitle.map(operatorToken).find(Boolean);
+                const urlToken = terms.inurl.map(operatorToken).find(Boolean);
+                const textToken = terms.intext.map(operatorToken).find(Boolean);
+                const parts = [];
+
+                if (profile.titleOperator && titleToken) {
+                    parts.push(`${profile.titleOperator}:${titleToken}`);
+                }
+
+                if (profile.urlOperator && urlToken && urlToken !== titleToken) {
+                    parts.push(`${profile.urlOperator}:${urlToken}`);
+                }
+
+                if (profile.textOperator && textToken) {
+                    parts.push(`${profile.textOperator}:${textToken}`);
+                }
+
+                if (!parts.length) {
+                    return fallbackTemplatePhrase(terms);
+                }
+
+                return uniqueValues(parts).join(" ");
+            }
+
+            function fallbackTemplatePhrase(terms) {
+                const firstPhrase = terms.intext[0] || terms.intitle[0] || terms.inurl[0] || "intake form";
+                return quotePhrase(firstPhrase);
+            }
+
+            function buildEngineTemplateClause(dork, engine = state.engine, scopeValue) {
+                const scope = scopeValue || (isValidScope(state.scope) ? state.scope : "{scope}");
+                const profile = getEngineSyntaxProfile(engine);
+                const site = `site:${scope}`;
+                const core = buildEngineTemplateCore(dork, engine);
+                const parts = profile.sitePlacement === "suffix" ? [core, site] : [site, core];
+
+                return parts.join(" ").replace(/\s+/g, " ").trim();
+            }
+
+            function buildEngineModifiers(engine = state.engine) {
+                const profile = getEngineSyntaxProfile(engine);
+                const modifiers = [];
+
+                if (state.options.reduceNoise) {
+                    if (profile.noiseMode === "url") {
+                        modifiers.push({ key: "noise", code: "-inurl:blog -inurl:docs -inurl:press -inurl:privacy -inurl:terms" });
+                    } else if (profile.noiseMode === "not") {
+                        modifiers.push({ key: "noise", code: "NOT blog NOT docs NOT press NOT privacy NOT terms" });
+                    } else {
+                        modifiers.push({ key: "noise", code: "-blog -docs -press -privacy -terms" });
+                    }
+                }
+
+                if (state.options.paramBias) {
+                    if (profile.parameterMode === "google") {
+                        modifiers.push({ key: "param", code: "(inurl:form OR inurl:submit OR inurl:request)" });
+                    } else if (profile.parameterMode === "url" && profile.urlOperator) {
+                        modifiers.push({ key: "param", code: `${profile.urlOperator}:form` });
+                    } else {
+                        modifiers.push({ key: "param", code: "form" });
+                    }
+                }
+
+                if (state.options.freshBias) {
+                    if (profile.freshOperator === "after") {
+                        modifiers.push({ key: "fresh", code: "after:2024-01-01" });
+                    } else {
+                        modifiers.push({ key: "fresh", code: "not appended", unsupported: true });
+                    }
+                }
+
+                return modifiers;
+            }
+
+            function describeEngineFields(selected, engine = state.engine) {
+                const terms = parseTemplateTerms(selected.query);
+                const fields = [];
+
+                if (engine === "google") {
+                    if (terms.intitle.length) fields.push("intitle");
+                    if (terms.inurl.length) fields.push("inurl");
+                    if (terms.intext.length) fields.push("intext");
+                    if (selected.query.includes(" OR ")) fields.push("OR");
+                    return fields.join(" / ") || "match mix";
+                }
+
+                if (engine === "bing") {
+                    if (terms.intitle.length) fields.push("intitle");
+                    if (terms.intext.length) fields.push("inbody");
+                    if (terms.inurl.length) fields.push("quoted URL terms");
+                    fields.push("OR");
+                    return fields.join(" / ");
+                }
+
+                if (terms.intitle.length) fields.push("intitle");
+                if (terms.inurl.length) fields.push("inurl");
+                if (terms.intext.length) fields.push("exact phrase fallback");
+                fields.push("focused AND");
+                return fields.join(" / ");
+            }
+
+            function engineSyntaxExplanation(engine, selected, lang) {
+                if (lang === "zh") {
+                    if (engine === "google") {
+                        return "Google 适配器保留模板原始 OR 组合，并在模板存在时保留 intitle、inurl、intext 这三类匹配位置。这样写能覆盖同义词、路径变体和表单文案，适合发现阶段扩大召回。人工判断时不要把 OR 命中数量当成风险等级；真正重要的是命中词是否出现在页面标题、功能路径、摘要或真实提交控件附近。";
+                    }
+                    if (engine === "bing") {
+                        return "Bing 适配器只使用 Bing 文档中更可靠的 site、intitle、inbody、OR、NOT 逻辑；原模板里的 intext 会转换为 inbody，URL 路径候选不会硬写成 Google 的 inurl，而是作为精确短语参与 OR。这样写牺牲了一点路径精度，但避免把不适配的 Google 算符误当成 Bing 过滤条件。人工判断时要更依赖 URL 和摘要本身，尤其关注 ticket、apply、report、upload、callback、quote 等动作词是否真的出现在结果里。";
+                    }
+                    if (engine === "duck") {
+                        return "DuckDuckGo 适配器使用 site、intitle、inurl 和减号排除，并把模板从宽 OR 压缩成更聚焦的 AND 查询。这样写是为了避免把不稳定的 OR、intext、after 直接交给引擎，降低语法失真。人工判断时如果结果过少，可以换回 Google 或关闭部分过滤；如果结果偏少但质量高，优先看路径像表单入口的候选页。";
+                    }
+                    return "Baidu 适配器使用 intitle、inurl、site 这类更适合百度网页搜索的写法，并把 site 放在命令末尾；不会追加 OR、intext 或 after。这样写更贴近百度的搜索习惯，避免复杂 Google dork 在百度里变成普通噪音词。人工判断时要特别看结果摘要和实际页面，因为百度对英文路径词的召回可能和 Google/Bing 不同。";
+                }
+
+                if (lang === "fr") {
+                    if (engine === "google") {
+                        return "L'adaptateur Google conserve les groupes OR ainsi que intitle, inurl et intext lorsqu'ils existent dans le modèle. Cette forme maximise le rappel pendant la découverte. Au triage, le nombre de variantes qui correspondent n'est pas un niveau de risque; vérifiez où le terme apparaît et si la page accepte réellement une saisie.";
+                    }
+                    if (engine === "bing") {
+                        return "L'adaptateur Bing reste sur site, intitle, inbody, OR et NOT. Les correspondances intext deviennent inbody, et les fragments d'URL sont traités comme expressions exactes plutôt que comme un opérateur Google inurl. Cela réduit la fausse précision et oblige à lire l'URL et l'extrait.";
+                    }
+                    if (engine === "duck") {
+                        return "L'adaptateur DuckDuckGo utilise site, intitle, inurl et les exclusions par tiret, puis compresse le modèle en requête AND focalisée. Les opérateurs OR, intext et after ne sont pas ajoutés afin d'éviter une syntaxe instable.";
+                    }
+                    return "L'adaptateur Baidu utilise intitle, inurl et site, avec site placé à la fin. Il n'ajoute pas OR, intext ou after. Cette forme est plus proche de la recherche Web Baidu et demande de vérifier attentivement l'extrait et la page réelle.";
+                }
+
+                if (engine === "google") {
+                    return "The Google adapter keeps the template's OR group plus intitle, inurl, and intext when they exist in the template. This maximizes recall during discovery. During manual review, do not treat more OR hits as higher risk; check where the term appears and whether the page actually accepts user-controlled input.";
+                }
+                if (engine === "bing") {
+                    return "The Bing adapter uses site, intitle, inbody, OR, and NOT. Template intext matches become inbody, while URL fragments are kept as exact phrases instead of being sent as Google-style inurl operators. This avoids false precision and makes the URL and snippet more important during triage.";
+                }
+                if (engine === "duck") {
+                    return "The DuckDuckGo adapter uses site, intitle, inurl, and minus exclusions, then compresses broad OR templates into focused AND queries. OR, intext, and after are not appended because they are less reliable in this engine context.";
+                }
+                return "The Baidu adapter uses intitle, inurl, and site, with site placed at the end of the query. It does not append OR, intext, or after. This is closer to Baidu Web Search behavior, so read snippets and landing pages carefully.";
+            }
+
+            function modifierExplanation(modifier, engine, lang) {
+                if (lang === "zh") {
+                    if (modifier.key === "noise") {
+                        if (engine === "google") return "降噪项使用 -inurl 精确压低博客、文档、新闻稿、隐私政策和服务条款路径。这样写是因为这些页面经常包含 contact、support、report 等词，但通常没有真正提交入口。人工判断时如果结果太少，可以临时关闭降噪再比较。";
+                        if (engine === "bing") return "Bing 降噪使用 NOT 排除常见信息页关键词，而不是 -inurl。这样写符合 Bing 的布尔排除习惯，但会比 URL 路径排除更宽；如果真实入口页面正文也提到 docs 或 privacy，可能被过滤掉，结果过少时应关闭再试。";
+                        return "当前引擎降噪使用普通减号排除 blog、docs、press、privacy、terms。这样写能减少信息页，但不是纯 URL 过滤，可能排除正文里提到这些词的真实入口。人工判断时把它当成优先级过滤，不要当成完整覆盖。";
+                    }
+                    if (modifier.key === "param") {
+                        if (engine === "google") return "参数偏向使用 Google 支持的 inurl 字段，追加 form、submit、request 这类路径词，让结果更靠近表单、提交和请求流程。这样写比搜索问号或等号更稳定；人工判断时仍要看真实页面是否存在提交动作。";
+                        if (engine === "bing") return "Bing 没有使用 Google 风格的 inurl 参数组合，所以这里只追加普通 form 关键词作为弱偏向。这样写不会伪装成 URL 级过滤；人工判断时仍要看真实 URL 是否带表单路径或提交流程。";
+                        return "参数偏向在当前引擎下使用 inurl:form 作为保守 URL 路径提示。这样写会更关注路径中出现 form 的页面，但可能漏掉 /request、/ticket、/apply 这类不含 form 的真实入口。";
+                    }
+                    if (modifier.key === "fresh" && !modifier.unsupported) {
+                        return "近期偏向在 Google 下追加 after:2024-01-01，让结果更接近近期索引页面。这样写适合快速摸清当前仍在使用的入口，但搜索引擎索引日期不等于页面上线日期；人工分诊时只能把它当作优先级参考，不能替代页面状态确认。";
+                    }
+                    return "当前搜索引擎没有追加 after:2024-01-01，因为这个 typed operator 只在 Google 适配器中使用。这样做是为了避免把不支持的日期语法当成普通关键词传给引擎。人工分诊时如需近期结果，请使用搜索引擎页面自己的时间筛选。";
+                }
+
+                if (lang === "fr") {
+                    if (modifier.key === "noise") {
+                        if (engine === "google") return "Les exclusions utilisent -inurl pour réduire les chemins blog, docs, presse, confidentialité et conditions. Si les résultats deviennent trop rares, désactivez ce filtre et comparez.";
+                        if (engine === "bing") return "Bing utilise NOT pour l'exclusion au lieu de -inurl. C'est compatible avec sa logique booléenne, mais plus large qu'un filtre d'URL; désactivez-le si trop de résultats disparaissent.";
+                        return "Ce moteur utilise des exclusions simples par tiret. Elles réduisent les pages informatives mais peuvent aussi exclure une vraie page qui mentionne ces termes.";
+                    }
+                    if (modifier.key === "param") {
+                        if (engine === "google") return "Le biais de paramètres utilise inurl avec form, submit et request pour favoriser les chemins de formulaire ou de soumission.";
+                        if (engine === "bing") return "Bing reçoit seulement le terme form comme biais faible, sans simuler un opérateur URL Google.";
+                        return "Le biais de paramètres utilise inurl:form comme indice de chemin conservateur; il peut manquer les vrais flux nommés request, ticket ou apply.";
+                    }
+                    if (modifier.key === "fresh" && !modifier.unsupported) {
+                        return "Le biais de fraîcheur ajoute after:2024-01-01 dans Google pour privilégier des pages indexées récemment. La date d'indexation n'est pas une preuve de mise en production; utilisez-la seulement comme priorité de triage.";
+                    }
+                    return "Aucun after:2024-01-01 n'est ajouté pour ce moteur. Utilisez le filtre temporel natif du moteur si vous avez besoin de résultats récents.";
+                }
+
+                if (modifier.key === "noise") {
+                    if (engine === "google") return "Noise reduction uses -inurl to suppress common blog, docs, press, privacy, and terms paths. Disable it if the result set becomes too small.";
+                    if (engine === "bing") return "Bing noise reduction uses NOT instead of -inurl. That matches Bing boolean syntax but is broader than URL-only filtering, so disable it if it removes too much.";
+                    return "This engine uses plain minus exclusions. They reduce informational pages but may also exclude real intake pages that mention those terms.";
+                }
+                if (modifier.key === "param") {
+                    if (engine === "google") return "Parameter bias uses Google-supported inurl terms for form, submit, and request to favor form or submission routes.";
+                    if (engine === "bing") return "Bing receives plain form as a weak bias instead of a simulated Google URL operator.";
+                    return "Parameter bias uses inurl:form as a conservative path hint; it can miss real request, ticket, or apply flows that do not include form in the URL.";
+                }
+                if (modifier.key === "fresh" && !modifier.unsupported) {
+                    return "Freshness bias appends after:2024-01-01 in Google to prioritize recently indexed pages. Index date is not proof of deployment date, so treat it as a triage hint only.";
+                }
+                return "No after:2024-01-01 operator is appended for this engine. Use the engine's native time filter when you need recency.";
             }
 
             function makeAnalysisItem(title, type, code, points) {
@@ -3506,10 +3859,10 @@
                 }
 
                 if (state.options.paramBias) {
-                    items.push(makeAnalysisItem("参数化偏向", "增强", '(inurl:"?" OR inurl:"=" OR inurl:"form")', [
-                        point(labels.purpose, "偏向带查询参数、等号或 form 路径的页面。"),
-                        point(labels.why, "参数化 URL 经常意味着页面存在状态、筛选、提交或动态处理逻辑。"),
-                        point(labels.watch, "不是所有表单都有参数；现代单页应用也可能完全没有 ? 或 =。")
+                    items.push(makeAnalysisItem("提交路径偏向", "增强", "(inurl:form OR inurl:submit OR inurl:request)", [
+                        point(labels.purpose, "偏向路径中出现 form、submit、request 的页面。"),
+                        point(labels.why, "这些词更常对应表单、提交或请求流程，也比搜索问号和等号更稳定。"),
+                        point(labels.watch, "并非所有真实入口都会包含这些路径词；结果过少时可以关闭这个偏向。")
                     ]));
                 }
 
@@ -3523,7 +3876,7 @@
 
                 items.push(makeAnalysisItem("搜索引擎选择", "执行", state.engine, [
                     point(labels.purpose, "决定点击 Open 时使用哪个搜索引擎。"),
-                    point(labels.why, "Google、Bing、DuckDuckGo 的索引覆盖不同，同一查询可能返回不同入口。"),
+                    point(labels.why, "Google、Bing、DuckDuckGo、Baidu 的索引覆盖不同，同一查询可能返回不同入口。"),
                     point(labels.triage, "建议先固定模板，换引擎比较差异；不要同时改模板和引擎，否则很难复盘。")
                 ]));
 
@@ -3733,21 +4086,12 @@
                 if (!dork) return "site:{scope} select a template";
 
                 const scope = isValidScope(state.scope) ? state.scope : "{scope}";
-                const operators = [];
+                const clause = buildEngineTemplateClause(dork, state.engine, scope);
+                const modifiers = buildEngineModifiers(state.engine)
+                    .filter(modifier => !modifier.unsupported)
+                    .map(modifier => modifier.code);
 
-                if (state.options.reduceNoise) {
-                    operators.push("-inurl:blog", "-inurl:docs", "-inurl:press", "-inurl:privacy", "-inurl:terms");
-                }
-
-                if (state.options.paramBias) {
-                    operators.push('(inurl:"?" OR inurl:"=" OR inurl:"form")');
-                }
-
-                if (state.options.freshBias) {
-                    operators.push("after:2024-01-01");
-                }
-
-                return [`site:${scope}`, dork.query, ...operators].join(" ").replace(/\s+/g, " ").trim();
+                return [clause, ...modifiers].join(" ").replace(/\s+/g, " ").trim();
             }
 
             function updateScopeState(commit) {

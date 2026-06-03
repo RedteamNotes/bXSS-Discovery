@@ -22,8 +22,9 @@ Les requêtes générées réduisent les résultats de recherche publics. Elles 
 - Interface anglaise par défaut, avec bascule chinoise et française
 - 36 modèles de découverte revus, avec filtrage par catégorie et mots-clés
 - Panneaux numérotés pour le périmètre, le modèle, la requête, les paramètres, le triage et l'explication
-- Sélection d'un seul moteur parmi Google, Bing ou DuckDuckGo
-- Explications détaillées du périmètre, des correspondances, du moteur choisi et des filtres
+- Sélection d'un seul moteur parmi Google, Bing, DuckDuckGo ou Baidu
+- Génération de requêtes adaptée au moteur, sans réutiliser aveuglément une syntaxe Google générique
+- Explications détaillées du périmètre, des correspondances, du moteur choisi, des dégradations syntaxiques et des filtres
 - File et historique pour conserver le contexte de triage
 - Thème clair par défaut, avec bascule sombre
 - Application statique en un seul fichier, hébergeable partout
@@ -48,7 +49,7 @@ http://127.0.0.1:4173/
 2. Confirmer l'autorisation de test pour ce périmètre.
 3. Filtrer ou choisir un modèle dans la bibliothèque.
 4. Lire la requête générée et son explication avant d'ouvrir les résultats.
-5. Ajuster les paramètres, dont un moteur sélectionné et les filtres optionnels.
+5. Ajuster les paramètres, dont un moteur sélectionné et les filtres optionnels. La commande générée change selon le moteur afin d'éviter les opérateurs non compatibles.
 6. Ouvrir la requête seulement si le périmètre et l'autorisation sont corrects.
 7. Mettre les requêtes utiles en file avec une courte note de triage.
 8. Examiner les résultats manuellement et relier les preuves au périmètre et à la requête d'origine.
@@ -78,6 +79,8 @@ Les modèles sont définis dans le tableau `dorks` de `index.html`. Chaque entr�
 - `query` : fragment ajouté après `site:{scope}`
 
 La bibliothèque actuelle contient 36 modèles revus couvrant les surfaces d'entrée, feedback, support, confiance/sûreté, carrières, marketing, ventes, identité et opérations.
+
+Les moteurs de recherche ne partagent pas une syntaxe dork identique. L'application conserve la forme Google la plus riche lorsque c'est pertinent, utilise `intitle`, `inbody`, `OR` et `NOT` pour Bing, garde DuckDuckGo sur des opérateurs de champ et d'exclusion plus focalisés, et génère des requêtes Baidu prudentes avec `intitle`, `inurl` et `site`.
 
 Gardez les nouveaux modèles spécifiques, explicables et faciles à trier. Évitez les termes trop larges qui retournent surtout des pages marketing, politiques ou documentaires.
 

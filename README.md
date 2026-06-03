@@ -22,8 +22,9 @@ Generated queries narrow public search results. They are not proof of vulnerabil
 - English default UI with Chinese and French language switches
 - 36 reviewed discovery templates with category and keyword filtering
 - Numbered workflow panels for scope, template, query, parameters, triage, and explanation
-- Single search engine selection for Google, Bing, or DuckDuckGo
-- Detailed query explanations for scope, template matching, search engine choice, and result filters
+- Single search engine selection for Google, Bing, DuckDuckGo, or Baidu
+- Engine-aware query generation that adapts Google, Bing, DuckDuckGo, and Baidu syntax instead of reusing one generic dork
+- Detailed query explanations for scope, template matching, search engine choice, syntax downgrades, and result filters
 - Queue and history views for triage context
 - Light theme by default, with a dark theme toggle
 - Static single-file app that can be hosted anywhere
@@ -48,7 +49,7 @@ http://127.0.0.1:4173/
 2. Confirm that you have testing authorization for that scope.
 3. Filter or select a template from the template library.
 4. Read the generated query and explanation before opening results.
-5. Adjust query parameters, including one selected search engine and optional result filters.
+5. Adjust query parameters, including one selected search engine and optional result filters. The generated command changes by engine so unsupported operators are not silently carried across.
 6. Open the query only when scope and authorization are correct.
 7. Queue promising queries with a short triage note.
 8. Review results manually and keep evidence tied to the original scope and query.
@@ -78,6 +79,8 @@ Templates are defined in the `dorks` array inside `index.html`. Each entry inclu
 - `query`: search query fragment appended after `site:{scope}`
 
 The current library contains 36 reviewed templates covering intake, feedback, support, trust and safety, careers, marketing, sales, identity, and operations surfaces.
+
+Search engines do not share one identical dork syntax. The app preserves the richer Google query form where appropriate, uses Bing-compatible `intitle`, `inbody`, `OR`, and `NOT`, keeps DuckDuckGo queries focused around supported field and exclusion operators, and generates conservative Baidu queries with `intitle`, `inurl`, and `site`.
 
 Keep new templates specific, explainable, and easy to triage. Avoid broad terms that mostly return marketing, policy, or documentation pages.
 
