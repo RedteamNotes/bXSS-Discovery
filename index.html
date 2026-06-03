@@ -1,0 +1,3886 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="day">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>bXSS Discovery - Guided Dork Workbench</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg: #0a0d10;
+            --surface: #12171c;
+            --surface-2: #171d23;
+            --surface-3: #1e252c;
+            --text: #f2f5f7;
+            --muted: #8c98a5;
+            --line: #2a333d;
+            --primary: #e84b4b;
+            --primary-2: #ff6b5f;
+            --accent: #f0b84b;
+            --teal: #38d6c6;
+            --green: #5fd38d;
+            --blue: #64a8ff;
+            --danger: #ff5c6b;
+            --shadow: 0 18px 60px rgba(0, 0, 0, 0.35);
+            --radius: 8px;
+            --transition: 180ms ease;
+        }
+
+        [data-theme="day"] {
+            --bg: #eef2f5;
+            --surface: #ffffff;
+            --surface-2: #f7f9fb;
+            --surface-3: #eef3f6;
+            --text: #17202a;
+            --muted: #667481;
+            --line: #d8e0e7;
+            --primary: #c93636;
+            --primary-2: #db5a52;
+            --accent: #b87919;
+            --teal: #118f86;
+            --green: #227a46;
+            --blue: #2d69bb;
+            --danger: #c8394a;
+            --shadow: 0 18px 50px rgba(21, 36, 52, 0.13);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            min-height: 100%;
+        }
+
+        body {
+            min-height: 100vh;
+            margin: 0;
+            background:
+                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                radial-gradient(circle at 18% 0%, rgba(232, 75, 75, 0.16), transparent 30rem),
+                radial-gradient(circle at 88% 12%, rgba(56, 214, 198, 0.12), transparent 26rem),
+                var(--bg);
+            background-size: 34px 34px, 34px 34px, auto, auto, auto;
+            color: var(--text);
+            font-family: Inter, "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            letter-spacing: 0;
+        }
+
+        button,
+        input,
+        textarea,
+        select {
+            font: inherit;
+        }
+
+        button {
+            border: 0;
+        }
+
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            min-height: 70px;
+            padding: 0 28px;
+            background: rgba(10, 13, 16, 0.82);
+            border-bottom: 1px solid var(--line);
+            backdrop-filter: blur(16px);
+        }
+
+        [data-theme="day"] .topbar {
+            background: rgba(255, 255, 255, 0.88);
+        }
+
+        .brand {
+            display: inline-flex;
+            align-items: center;
+            color: var(--text);
+            text-decoration: none;
+            font-weight: 950;
+            font-size: clamp(28px, 2.3vw, 42px);
+            line-height: 1;
+        }
+
+        .brand span {
+            letter-spacing: 0;
+        }
+
+        .top-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .lang-switch {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            min-height: 38px;
+            padding: 4px;
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            background: var(--surface);
+        }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            min-height: 38px;
+            padding: 0 12px;
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            color: var(--muted);
+            background: var(--surface);
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--danger);
+            box-shadow: 0 0 16px var(--danger);
+        }
+
+        .status-pill.ready .status-dot {
+            background: var(--green);
+            box-shadow: 0 0 16px var(--green);
+        }
+
+        .icon-btn,
+        .ghost-btn,
+        .primary-btn,
+        .seg-btn,
+        .category-btn {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-height: 38px;
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            color: var(--text);
+            background: var(--surface-2);
+            cursor: pointer;
+            transition: transform var(--transition), border-color var(--transition), background var(--transition), color var(--transition);
+        }
+
+        .icon-btn {
+            width: 38px;
+            padding: 0;
+        }
+
+        .icon-btn:hover,
+        .ghost-btn:hover,
+        .seg-btn:hover,
+        .category-btn:hover {
+            border-color: color-mix(in srgb, var(--primary) 55%, var(--line));
+            transform: translateY(-1px);
+        }
+
+        .primary-btn {
+            min-width: 124px;
+            padding: 0 16px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-2));
+            border-color: transparent;
+            color: #fff;
+            font-weight: 800;
+        }
+
+        .primary-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 12px 28px rgba(232, 75, 75, 0.24);
+        }
+
+        .primary-btn:disabled,
+        .ghost-btn:disabled,
+        .icon-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.48;
+            transform: none;
+            box-shadow: none;
+        }
+
+        [data-tooltip]::after {
+            position: absolute;
+            right: 0;
+            bottom: -40px;
+            z-index: 30;
+            min-width: max-content;
+            padding: 7px 9px;
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            background: var(--surface-3);
+            color: var(--text);
+            content: attr(data-tooltip);
+            font-size: 12px;
+            line-height: 1;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(-4px);
+            transition: opacity var(--transition), transform var(--transition);
+        }
+
+        [data-tooltip]:hover::after {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .workspace {
+            width: 100%;
+            margin: 0;
+            padding: 18px 28px 42px;
+        }
+
+        .app-shell {
+            display: grid;
+            grid-template-columns: clamp(380px, 34vw, 460px) minmax(0, 1fr);
+            grid-template-areas:
+                "scope scope"
+                "library stage";
+            gap: 16px;
+            align-items: start;
+        }
+
+        .library-pane,
+        .stage {
+            min-width: 0;
+        }
+
+        .library-pane {
+            grid-area: library;
+            position: sticky;
+            top: 88px;
+            display: grid;
+            gap: 14px;
+            align-content: start;
+            max-height: calc(100vh - 106px);
+            overflow: auto;
+            scrollbar-width: thin;
+        }
+
+        .library-panel {
+            display: grid;
+            grid-template-rows: auto minmax(0, 1fr);
+            height: calc(100vh - 106px);
+            overflow: hidden;
+        }
+
+        .library-body {
+            display: grid;
+            grid-template-rows: auto minmax(0, 1fr);
+            gap: 12px;
+            min-height: 0;
+        }
+
+        .library-content {
+            display: grid;
+            grid-template-columns: minmax(132px, 0.36fr) minmax(0, 1fr);
+            gap: 12px;
+            min-height: 0;
+        }
+
+        .scope-strip {
+            grid-area: scope;
+            display: grid;
+            grid-template-columns: minmax(340px, 1fr) minmax(220px, auto) auto;
+            gap: 12px;
+            align-items: end;
+            padding: 16px;
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            background: color-mix(in srgb, var(--surface) 92%, transparent);
+            box-shadow: var(--shadow);
+        }
+
+        .field {
+            display: grid;
+            gap: 8px;
+        }
+
+        .label-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .scope-input-wrap,
+        .filter-wrap {
+            position: relative;
+        }
+
+        .scope-input-wrap i,
+        .filter-wrap i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            color: var(--muted);
+            transform: translateY(-50%);
+        }
+
+        .scope-input,
+        .filter-input,
+        .notes-input,
+        .query-box {
+            width: 100%;
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            outline: none;
+            background: var(--surface-2);
+            color: var(--text);
+            transition: border-color var(--transition), box-shadow var(--transition), background var(--transition);
+        }
+
+        .scope-input,
+        .filter-input {
+            min-height: 46px;
+            padding: 0 14px 0 42px;
+        }
+
+        .scope-input:focus,
+        .filter-input:focus,
+        .notes-input:focus,
+        .query-box:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 22%, transparent);
+        }
+
+        .auth-line {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-height: 46px;
+            padding: 0 12px;
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            background: var(--surface-2);
+            color: var(--text);
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .auth-line input,
+        .option-line input {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--primary);
+        }
+
+        .stage {
+            grid-area: stage;
+            min-width: 0;
+        }
+
+        .panel {
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            background: color-mix(in srgb, var(--surface) 94%, transparent);
+            box-shadow: var(--shadow);
+        }
+
+        .panel + .panel {
+            margin-top: 0;
+        }
+
+        .panel-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 15px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .library-pane .panel-head {
+            padding: 10px 12px;
+        }
+
+        .library-pane .panel-body {
+            padding: 10px 12px;
+        }
+
+        .panel-head h2,
+        .panel-head h3 {
+            margin: 0;
+            font-size: 13px;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .panel-body {
+            padding: 15px;
+        }
+
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+        }
+
+        .metric {
+            min-height: 48px;
+            padding: 8px;
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            background: var(--surface-2);
+        }
+
+        .metric strong {
+            display: block;
+            color: var(--text);
+            font-size: 20px;
+            line-height: 1;
+        }
+
+        .metric span {
+            display: block;
+            margin-top: 5px;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .category-list {
+            display: flex;
+            flex-direction: column;
+            flex-wrap: nowrap;
+            gap: 8px;
+            min-height: 0;
+            overflow: auto;
+            padding-right: 2px;
+            scrollbar-width: thin;
+        }
+
+        .category-btn {
+            flex: 0 0 auto;
+            justify-content: flex-start;
+            width: 100%;
+            min-height: 40px;
+            padding: 0 11px;
+            color: var(--muted);
+            text-align: left;
+        }
+
+        .category-btn i {
+            display: none;
+        }
+
+        .category-btn strong {
+            margin-left: auto;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .category-btn.active {
+            border-color: color-mix(in srgb, var(--primary) 70%, var(--line));
+            background: color-mix(in srgb, var(--primary) 14%, var(--surface-2));
+            color: var(--text);
+        }
+
+        .option-list {
+            display: grid;
+            gap: 10px;
+        }
+
+        .option-line {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.4;
+            cursor: pointer;
+        }
+
+        .stage {
+            display: grid;
+            gap: 16px;
+        }
+
+        .view-switch {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            width: 100%;
+            min-height: 46px;
+            padding: 4px;
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            background: var(--surface-2);
+        }
+
+        .launch-card .view-switch {
+            margin-top: 12px;
+        }
+
+        .seg-btn {
+            flex: 1 1 0;
+            min-height: 36px;
+            padding: 0 12px;
+            border-color: transparent;
+            color: var(--muted);
+            background: transparent;
+            white-space: nowrap;
+        }
+
+        .seg-btn.active {
+            background: var(--surface-3);
+            color: var(--text);
+            border-color: var(--line);
+        }
+
+        .engine-card-kicker {
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 900;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .engine-card-name {
+            color: var(--text);
+            font-size: 14px;
+            font-weight: 950;
+            line-height: 1.25;
+            text-align: right;
+        }
+
+        .engine-switch {
+            display: grid;
+            gap: 8px;
+        }
+
+        .engine-option {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            min-height: 30px;
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 800;
+            line-height: 1.2;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .engine-option input {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--primary);
+        }
+
+        .engine-option.active {
+            color: var(--text);
+        }
+
+        .selected-workbench {
+            border: 1px solid color-mix(in srgb, var(--primary) 36%, var(--line));
+            border-radius: var(--radius);
+            background:
+                linear-gradient(180deg, color-mix(in srgb, var(--primary) 9%, transparent), transparent 45%),
+                color-mix(in srgb, var(--surface) 95%, transparent);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .selected-hero {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 16px;
+            align-items: start;
+            padding: 18px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .selected-eyebrow {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .selected-title {
+            margin: 0;
+            max-width: 920px;
+            font-size: clamp(26px, 2.2vw, 38px);
+            line-height: 1.05;
+        }
+
+        .selected-description {
+            max-width: 820px;
+            margin: 12px 0 0;
+            color: var(--muted);
+            font-size: 16px;
+            line-height: 1.55;
+        }
+
+        .selected-readout {
+            display: grid;
+            gap: 9px;
+            min-width: min(260px, 100%);
+        }
+
+        .selected-body {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(260px, 300px);
+            gap: 16px;
+            align-items: start;
+            padding: 18px;
+        }
+
+        .composer-column,
+        .launch-column {
+            min-width: 0;
+        }
+
+        .launch-column {
+            display: grid;
+            gap: 12px;
+        }
+
+        .query-parameters-card {
+            margin-top: 12px;
+        }
+
+        .triage-card {
+            margin-top: 12px;
+        }
+
+        .query-parameters {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+            gap: 12px;
+        }
+
+        .parameter-block {
+            display: grid;
+            align-content: start;
+            gap: 10px;
+            min-width: 0;
+            padding: 12px;
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            background: var(--surface);
+        }
+
+        .parameter-head {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 12px;
+            min-width: 0;
+        }
+
+        .parameter-head .engine-card-kicker,
+        .parameter-head > span {
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 900;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .compact-options {
+            gap: 8px;
+        }
+
+        .compact-options .option-line {
+            align-items: flex-start;
+            min-height: 30px;
+        }
+
+        .flow-step {
+            position: relative;
+        }
+
+        .flow-step::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 3;
+            width: 62px;
+            height: 52px;
+            clip-path: polygon(0 0, 100% 0, 0 100%);
+            background: var(--line);
+            opacity: 0.88;
+            transition: background var(--transition), opacity var(--transition);
+        }
+
+        .flow-step::after {
+            content: attr(data-step);
+            position: absolute;
+            top: 3px;
+            left: 10px;
+            z-index: 4;
+            color: var(--surface);
+            font-size: 26px;
+            font-weight: 950;
+            line-height: 1;
+            transition: color var(--transition), opacity var(--transition);
+        }
+
+        .flow-step.is-active {
+            border-color: color-mix(in srgb, var(--primary) 58%, var(--line));
+        }
+
+        .flow-step.is-active::before {
+            background: linear-gradient(135deg, var(--primary), var(--primary-2));
+            opacity: 1;
+        }
+
+        .flow-step.is-complete {
+            border-color: color-mix(in srgb, var(--green) 46%, var(--line));
+        }
+
+        .flow-step.is-complete::before {
+            background: linear-gradient(135deg, var(--green), var(--teal));
+            opacity: 1;
+        }
+
+        .flow-step.is-locked::before {
+            opacity: 0.52;
+        }
+
+        .flow-step.is-locked::after {
+            opacity: 0.62;
+        }
+
+        .scope-strip.flow-step {
+            padding-left: 66px;
+        }
+
+        .flow-step > .panel-head,
+        .flow-step > .launch-card-head,
+        .flow-step > .analysis-head,
+        .selected-workbench.flow-step > .selected-hero {
+            padding-left: 64px;
+        }
+
+        .launch-card {
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            background: color-mix(in srgb, var(--surface-2) 88%, transparent);
+            overflow: hidden;
+        }
+
+        .launch-card-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 11px 12px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .launch-card-head h2,
+        .launch-card-head h3 {
+            margin: 0;
+            font-size: 12px;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .launch-card-body {
+            padding: 12px;
+        }
+
+        .section-label {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 10px;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 900;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .guide-drawer {
+            overflow: hidden;
+        }
+
+        .guide-drawer summary {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 12px;
+            cursor: pointer;
+            color: var(--text);
+            font-weight: 900;
+            list-style: none;
+        }
+
+        .guide-drawer summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .guide-content {
+            padding: 0 12px 12px;
+        }
+
+        .guide-content p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .analysis-workspace {
+            padding: 0 18px 18px;
+        }
+
+        .analysis-panel {
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            background: var(--surface-2);
+            overflow: hidden;
+        }
+
+        .analysis-head {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 16px;
+            align-items: center;
+            padding: 14px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .analysis-head h3 {
+            margin: 0;
+            font-size: 17px;
+        }
+
+        .analysis-tabs {
+            display: none;
+            gap: 4px;
+            padding: 4px;
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            background: var(--surface);
+        }
+
+        .analysis-tab {
+            min-height: 34px;
+            padding: 0 12px;
+            border: 1px solid transparent;
+            border-radius: 6px;
+            color: var(--muted);
+            background: transparent;
+            cursor: pointer;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .analysis-tab.active {
+            border-color: var(--line);
+            background: var(--surface-3);
+            color: var(--text);
+        }
+
+        .analysis-intro {
+            margin: 0;
+            padding: 12px 14px 0;
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.55;
+        }
+
+        .anatomy-list,
+        .tutorial-list {
+            display: grid;
+            gap: 12px;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .anatomy-list {
+            grid-template-columns: repeat(auto-fit, minmax(min(420px, 100%), 1fr));
+            padding: 12px;
+        }
+
+        .anatomy-list li,
+        .tutorial-list li {
+            display: grid;
+            gap: 8px;
+            padding: 12px;
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            background: var(--surface);
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.45;
+        }
+
+        .anatomy-list li {
+            grid-template-columns: 1fr;
+            align-content: start;
+        }
+
+        .anatomy-list.compact {
+            gap: 10px;
+        }
+
+        .anatomy-list.compact li {
+            padding: 11px 12px;
+        }
+
+        .tutorial-list li {
+            grid-template-columns: auto minmax(0, 1fr);
+            align-items: start;
+            padding: 14px;
+        }
+
+        .anatomy-list code {
+            display: block;
+            padding: 10px;
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            background: var(--surface-3);
+            color: color-mix(in srgb, var(--teal) 84%, var(--text));
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+            line-height: 1.5;
+            overflow-wrap: anywhere;
+        }
+
+        .analysis-item-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .analysis-item-head strong {
+            color: var(--text);
+            font-size: 15px;
+        }
+
+        .analysis-item-type {
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 900;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .analysis-point {
+            display: block;
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.62;
+        }
+
+        .analysis-point b {
+            color: var(--text);
+        }
+
+        .step-badge {
+            display: inline-grid;
+            width: 30px;
+            height: 30px;
+            place-items: center;
+            border: 1px solid color-mix(in srgb, var(--primary) 58%, var(--line));
+            border-radius: 50%;
+            color: var(--text);
+            background: color-mix(in srgb, var(--primary) 20%, var(--surface-3));
+            font-weight: 900;
+            line-height: 1;
+        }
+
+        .step-copy {
+            display: grid;
+            gap: 7px;
+        }
+
+        .tutorial-list strong,
+        .anatomy-list strong {
+            color: var(--text);
+        }
+
+        .tutorial-list {
+            margin-top: 16px;
+        }
+
+        .guide-content .tutorial-list {
+            padding: 0;
+        }
+
+        .dork-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 14px;
+            margin-top: 14px;
+        }
+
+        .dork-card {
+            display: grid;
+            min-height: 190px;
+            padding: 20px;
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            background:
+                linear-gradient(180deg, color-mix(in srgb, var(--surface-2) 95%, transparent), var(--surface));
+            color: var(--text);
+            cursor: pointer;
+            transition: transform var(--transition), border-color var(--transition), background var(--transition), box-shadow var(--transition);
+        }
+
+        .dork-card:hover {
+            border-color: color-mix(in srgb, var(--primary) 65%, var(--line));
+            transform: translateY(-3px);
+            box-shadow: 0 18px 34px rgba(0, 0, 0, 0.22);
+        }
+
+        .dork-card.active {
+            border-color: var(--primary);
+            background:
+                linear-gradient(180deg, color-mix(in srgb, var(--primary) 13%, var(--surface-2)), var(--surface));
+            box-shadow: 0 0 0 1px color-mix(in srgb, var(--primary) 35%, transparent), 0 22px 42px rgba(0, 0, 0, 0.2);
+        }
+
+        .card-top,
+        .card-meta,
+        .queue-row-top,
+        .history-row-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .card-icon {
+            display: grid;
+            width: 38px;
+            height: 38px;
+            place-items: center;
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            background: var(--surface-3);
+            color: var(--primary-2);
+        }
+
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            min-height: 26px;
+            padding: 0 8px;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            color: var(--muted);
+            background: var(--surface);
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        .tag.green {
+            color: var(--green);
+        }
+
+        .tag.amber {
+            color: var(--accent);
+        }
+
+        .tag.blue {
+            color: var(--blue);
+        }
+
+        .dork-card h3 {
+            margin: 14px 0 8px;
+            font-size: 18px;
+            line-height: 1.2;
+        }
+
+        .dork-card p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.45;
+        }
+
+        #discoverView,
+        #queueView,
+        #historyView {
+            margin: 0;
+        }
+
+        #queueView,
+        #historyView {
+            margin-top: 12px;
+        }
+
+        #discoverView {
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        #discoverView .dork-grid {
+            grid-template-columns: 1fr;
+            gap: 8px;
+            height: 100%;
+            max-height: none;
+            margin-top: 0;
+            padding: 4px;
+            overflow: auto;
+            align-content: start;
+            grid-auto-rows: max-content;
+            scroll-padding: 4px;
+            scrollbar-width: thin;
+        }
+
+        #discoverView .dork-card {
+            min-height: 116px;
+            padding: 16px;
+        }
+
+        #discoverView .dork-card:hover,
+        .library-panel .category-btn:hover {
+            transform: none;
+        }
+
+        #discoverView .dork-card:hover {
+            box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--primary) 42%, transparent);
+        }
+
+        #discoverView .dork-card.active {
+            box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--primary) 45%, transparent);
+        }
+
+        #discoverView .card-icon {
+            width: 30px;
+            height: 30px;
+            font-size: 13px;
+        }
+
+        #discoverView .tag {
+            min-height: 22px;
+            padding: 0 7px;
+            font-size: 10px;
+        }
+
+        #discoverView .dork-card h3 {
+            margin: 10px 0 6px;
+            font-size: 15px;
+        }
+
+        #discoverView .dork-card p {
+            display: -webkit-box;
+            overflow: hidden;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 2;
+            font-size: 12px;
+        }
+
+        #discoverView .card-meta {
+            display: flex;
+            margin-top: 12px;
+            font-size: 11px;
+        }
+
+        .card-meta {
+            align-self: end;
+            margin-top: 16px;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .empty-state {
+            display: grid;
+            min-height: 180px;
+            place-items: center;
+            margin-top: 0;
+            border: 1px dashed var(--line);
+            border-radius: var(--radius);
+            color: var(--muted);
+            text-align: center;
+        }
+
+        .inspector {
+            position: sticky;
+            top: 88px;
+        }
+
+        .inspector-title {
+            margin: 0;
+            font-size: 20px;
+            line-height: 1.25;
+        }
+
+        .inspector-copy {
+            margin: 8px 0 0;
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .query-box {
+            min-height: clamp(190px, 27vh, 320px);
+            padding: 16px;
+            resize: vertical;
+            color: color-mix(in srgb, var(--teal) 84%, var(--text));
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+            font-size: 15px;
+            line-height: 1.7;
+        }
+
+        .action-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .action-grid .primary-btn {
+            min-width: 0;
+        }
+
+        .ghost-btn {
+            min-width: 0;
+            padding: 0 12px;
+            color: var(--text);
+            font-weight: 800;
+        }
+
+        .scope-readout {
+            display: grid;
+            gap: 9px;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .readout-line {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            min-height: 34px;
+            padding: 0 10px;
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            background: var(--surface-2);
+        }
+
+        .readout-line code {
+            color: var(--text);
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+            overflow-wrap: anywhere;
+        }
+
+        .queue-list,
+        .history-list {
+            display: grid;
+            gap: 10px;
+            margin-top: 0;
+        }
+
+        .queue-row,
+        .history-row {
+            padding: 12px;
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            background: color-mix(in srgb, var(--surface) 94%, transparent);
+            box-shadow: var(--shadow);
+        }
+
+        .queue-row h3,
+        .history-row h3 {
+            margin: 0;
+            font-size: 15px;
+        }
+
+        .queue-row p,
+        .history-row p {
+            margin: 10px 0 0;
+            color: var(--muted);
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+            font-size: 12px;
+            line-height: 1.5;
+            overflow-wrap: anywhere;
+        }
+
+        .row-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .row-actions .ghost-btn,
+        .row-actions .primary-btn {
+            min-height: 34px;
+            min-width: 0;
+            padding: 0 10px;
+            font-size: 12px;
+        }
+
+        .notes-input {
+            min-height: 74px;
+            margin-top: 12px;
+            padding: 13px;
+            resize: vertical;
+            color: var(--text);
+            font-size: 14px;
+            line-height: 1.45;
+        }
+
+        .triage-card .notes-input {
+            margin-top: 0;
+        }
+
+        .run-controls {
+            display: grid;
+            gap: 10px;
+        }
+
+        .guide-drawer .tutorial-list {
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .guide-drawer .tutorial-list li {
+            grid-template-columns: auto minmax(0, 1fr);
+            padding: 10px;
+            font-size: 12px;
+            line-height: 1.45;
+        }
+
+        .guide-drawer .step-badge {
+            width: 26px;
+            height: 26px;
+            font-size: 12px;
+        }
+
+        .toast {
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            z-index: 40;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            max-width: min(390px, calc(100% - 40px));
+            min-height: 48px;
+            padding: 12px 14px;
+            border: 1px solid color-mix(in srgb, var(--green) 55%, var(--line));
+            border-radius: var(--radius);
+            background: color-mix(in srgb, var(--surface-3) 94%, transparent);
+            color: var(--text);
+            box-shadow: var(--shadow);
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(16px);
+            transition: opacity var(--transition), transform var(--transition);
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .toast.error {
+            border-color: color-mix(in srgb, var(--danger) 65%, var(--line));
+        }
+
+        .toast i {
+            color: var(--green);
+        }
+
+        .toast.error i {
+            color: var(--danger);
+        }
+
+        .site-footer {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 10px;
+            width: 100%;
+            padding: 0 28px 28px;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .site-footer strong {
+            color: var(--text);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @media (max-width: 1120px) {
+            .app-shell {
+                grid-template-columns: 1fr;
+                grid-template-areas:
+                    "scope"
+                    "library"
+                    "stage";
+            }
+
+            .anatomy-list {
+                grid-template-columns: 1fr;
+            }
+
+            .library-pane {
+                position: static;
+                max-height: none;
+                overflow: visible;
+            }
+
+            .library-panel {
+                height: auto;
+                min-height: 0;
+            }
+
+            #discoverView .dork-grid {
+                max-height: 520px;
+            }
+        }
+
+        @media (max-width: 960px) {
+            .scope-strip,
+            .selected-body,
+            .query-parameters {
+                grid-template-columns: 1fr;
+            }
+
+            .topbar {
+                padding: 0 16px;
+            }
+
+            .status-pill {
+                display: none;
+            }
+
+            .selected-hero {
+                grid-template-columns: 1fr;
+            }
+
+            .library-content {
+                grid-template-columns: 1fr;
+            }
+
+            .category-list {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(116px, 1fr));
+                max-height: none;
+                overflow: visible;
+                padding-right: 0;
+            }
+
+            .workspace {
+                padding: 12px 10px 32px;
+            }
+
+            .analysis-head {
+                grid-template-columns: 1fr;
+            }
+
+            .analysis-tabs {
+                overflow-x: auto;
+            }
+        }
+
+        @media (max-width: 560px) {
+            .brand {
+                font-size: 24px;
+            }
+
+            .dork-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .action-grid,
+            .metric-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .anatomy-list li,
+            .tutorial-list li {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="topbar">
+        <a class="brand" href="#" aria-label="bXSS Discovery home">
+            <span id="brandName">bXSS Discovery</span>
+        </a>
+        <div class="top-actions">
+            <div class="lang-switch" role="group" aria-label="Language">
+                <button class="seg-btn active" type="button" data-lang="en">EN</button>
+                <button class="seg-btn" type="button" data-lang="zh">中文</button>
+                <button class="seg-btn" type="button" data-lang="fr">FR</button>
+            </div>
+            <div class="status-pill" id="authStatus">
+                <span class="status-dot"></span>
+                <span id="authStatusText">Scope not confirmed</span>
+            </div>
+            <button class="icon-btn" id="themeToggle" type="button" aria-label="Toggle theme" data-tooltip="Toggle theme">
+                <i class="fa-solid fa-moon"></i>
+            </button>
+        </div>
+    </header>
+
+    <main class="workspace app-shell">
+        <section class="scope-strip panel flow-step is-active" data-flow-step="scope" data-step="1" aria-label="Scope controls">
+            <div class="field">
+                <div class="label-row">
+                    <label id="scopeLabel" for="scopeInput">Authorized target scope</label>
+                    <span id="scopeHint">No active scope</span>
+                </div>
+                <div class="scope-input-wrap">
+                    <i class="fa-solid fa-shield-halved"></i>
+                    <input class="scope-input" id="scopeInput" type="text" inputmode="url" autocomplete="off" placeholder="redteamnotes.com or https://app.redteamnotes.com/path">
+                </div>
+            </div>
+
+            <label class="auth-line" for="authCheck">
+                <input id="authCheck" type="checkbox">
+                <span id="authLabel">Testing authorization confirmed</span>
+            </label>
+
+            <button class="primary-btn" id="normalizeBtn" type="button">
+                <i class="fa-solid fa-check"></i>
+                <span id="setScopeLabel">Set scope</span>
+            </button>
+        </section>
+
+        <aside class="library-pane">
+            <section class="panel library-panel flow-step is-locked" data-flow-step="templates" data-step="2">
+                <div class="panel-head">
+                    <h2 id="categoriesTitle">Templates</h2>
+                    <button class="icon-btn" id="resetFiltersBtn" type="button" aria-label="Reset filters" data-tooltip="Reset filters">
+                        <i class="fa-solid fa-rotate-left"></i>
+                    </button>
+                </div>
+                <div class="panel-body library-body">
+                    <div class="filter-wrap">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input class="filter-input" id="templateSearch" type="search" autocomplete="off" placeholder="Filter templates, category, match type...">
+                    </div>
+                    <div class="library-content">
+                        <div class="category-list" id="categoryList"></div>
+                        <div id="discoverView">
+                            <div class="dork-grid" id="dorkGrid"></div>
+                            <div class="empty-state hidden" id="emptyDiscover">
+                                <div>
+                                    <i class="fa-solid fa-filter-circle-xmark"></i>
+                                    <p>No templates match the current filters.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </aside>
+
+        <section class="stage">
+            <section class="selected-workbench flow-step is-locked" data-flow-step="query" data-step="3" aria-label="Selected discovery">
+                <div class="selected-hero">
+                    <div>
+                        <div class="selected-eyebrow">
+                            <span class="tag blue" id="selectedCategory">Intake</span>
+                            <span class="tag amber" id="selectedIntensity">Low noise</span>
+                            <span class="tag" id="selectedOperator">Title + URL</span>
+                        </div>
+                        <h1 class="selected-title" id="selectedTitle">Select a dork template</h1>
+                        <p class="selected-description" id="selectedDescription">Pick a template from Discover to generate a scoped query.</p>
+                    </div>
+
+                    <div class="selected-readout scope-readout">
+                        <div class="readout-line">
+                            <span id="scopeReadoutLabel">Scope</span>
+                            <code id="scopeReadout">{scope}</code>
+                        </div>
+                        <div class="readout-line">
+                            <span id="engineReadoutLabel">Engine</span>
+                            <code id="engineReadout">Google</code>
+                        </div>
+                        <div class="readout-line">
+                            <span id="authReadoutLabel">Authorization</span>
+                            <code id="authReadout">not confirmed</code>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="selected-body">
+                    <div class="composer-column">
+                        <div class="section-label">
+                            <span id="queryPreviewLabel">Generated query</span>
+                            <span id="queryHint">Read before opening</span>
+                        </div>
+                        <textarea class="query-box" id="queryPreview" readonly spellcheck="false">site:{scope} select a template</textarea>
+
+                        <section class="launch-card query-parameters-card flow-step is-locked" data-flow-step="parameters" data-step="4">
+                            <div class="launch-card-head">
+                                <h2 id="runTitle">Query parameters</h2>
+                                <i class="fa-solid fa-sliders" aria-hidden="true"></i>
+                            </div>
+                            <div class="launch-card-body query-parameters">
+                                <div class="parameter-block">
+                                    <div class="parameter-head">
+                                        <span class="engine-card-kicker" id="engineCardLabel">Search engine</span>
+                                        <strong class="engine-card-name" id="engineCardName">Search with Google</strong>
+                                    </div>
+                                    <div class="engine-switch" role="group" aria-label="Search engine">
+                                        <label class="engine-option active">
+                                            <input type="checkbox" data-engine="google" aria-label="Google" checked>
+                                            <span>Google</span>
+                                        </label>
+                                        <label class="engine-option">
+                                            <input type="checkbox" data-engine="bing" aria-label="Bing">
+                                            <span>Bing</span>
+                                        </label>
+                                        <label class="engine-option">
+                                            <input type="checkbox" data-engine="duck" aria-label="DuckDuckGo">
+                                            <span>DuckDuckGo</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="parameter-block">
+                                    <div class="parameter-head">
+                                        <span id="operatorsTitle">Result filters</span>
+                                    </div>
+                                    <div class="option-list compact-options">
+                                        <label class="option-line" for="noiseToggle">
+                                            <input id="noiseToggle" type="checkbox" checked>
+                                            <span id="noiseLabel">Reduce docs, blog, press, and policy pages</span>
+                                        </label>
+                                        <label class="option-line" for="paramToggle">
+                                            <input id="paramToggle" type="checkbox">
+                                            <span id="paramLabel">Bias toward parameterized and form-like URLs</span>
+                                        </label>
+                                        <label class="option-line" for="freshToggle">
+                                            <input id="freshToggle" type="checkbox">
+                                            <span id="freshLabel">Add a recent-results bias for triage</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <section class="launch-card triage-card flow-step is-locked" data-flow-step="triage" data-step="5">
+                            <div class="launch-card-head">
+                                <h2 id="triageTitle">Triage note</h2>
+                                <i class="fa-solid fa-clipboard-check" aria-hidden="true"></i>
+                            </div>
+                            <div class="launch-card-body">
+                                <textarea class="notes-input" id="notesInput" spellcheck="true" placeholder="Triage note for queue/history"></textarea>
+
+                                <div class="action-grid">
+                                    <button class="ghost-btn" id="copyBtn" type="button" disabled>
+                                        <i class="fa-solid fa-copy"></i>
+                                        <span id="copyLabel">Copy</span>
+                                    </button>
+                                    <button class="ghost-btn" id="queueBtn" type="button" disabled>
+                                        <i class="fa-solid fa-plus"></i>
+                                        <span id="queueLabel">Queue</span>
+                                    </button>
+                                    <button class="primary-btn" id="openBtn" type="button" disabled>
+                                        <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                                        <span id="openLabel">Open</span>
+                                    </button>
+                                    <button class="ghost-btn" id="clearBtn" type="button">
+                                        <i class="fa-solid fa-eraser"></i>
+                                        <span id="clearLabel">Clear</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+
+                    <aside class="launch-column">
+                        <section class="launch-card">
+                            <div class="launch-card-head">
+                                <h2 id="missionTitle">Mission</h2>
+                                <i class="fa-solid fa-signal" aria-hidden="true"></i>
+                            </div>
+                            <div class="launch-card-body">
+                                <div class="metric-grid">
+                                    <div class="metric">
+                                        <strong id="templateMetric">0</strong>
+                                        <span id="templatesMetricLabel">Templates</span>
+                                    </div>
+                                    <div class="metric">
+                                        <strong id="visibleMetric">0</strong>
+                                        <span id="visibleMetricLabel">Visible</span>
+                                    </div>
+                                    <div class="metric">
+                                        <strong id="queueMetric">0</strong>
+                                        <span id="queuedMetricLabel">Queued</span>
+                                    </div>
+                                    <div class="metric">
+                                        <strong id="historyMetric">0</strong>
+                                        <span id="historyMetricLabel">History</span>
+                                    </div>
+                                </div>
+                                <div class="view-switch" role="group" aria-label="Workbench view">
+                                    <button class="seg-btn active" type="button" data-view="discover">Discover</button>
+                                    <button class="seg-btn" type="button" data-view="queue">Queue</button>
+                                    <button class="seg-btn" type="button" data-view="history">History</button>
+                                </div>
+                                <div id="queueView" class="hidden">
+                                    <div class="queue-list" id="queueList"></div>
+                                    <div class="empty-state hidden" id="emptyQueue">
+                                        <div>
+                                            <i class="fa-solid fa-list-check"></i>
+                                            <p>No queued searches yet.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="historyView" class="hidden">
+                                    <div class="history-list" id="historyList"></div>
+                                    <div class="empty-state hidden" id="emptyHistory">
+                                        <div>
+                                            <i class="fa-solid fa-clock-rotate-left"></i>
+                                            <p>No execution history yet.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <details class="launch-card guide-drawer">
+                            <summary>
+                                <span id="tutorialTitle">How to use this result</span>
+                                <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+                            </summary>
+                            <div class="guide-content">
+                                <p id="queryExplainer">This panel explains what each query part is doing before you open the search.</p>
+                                <ul class="tutorial-list" id="tutorialList"></ul>
+                            </div>
+                        </details>
+                    </aside>
+                </div>
+
+                <div class="analysis-workspace">
+                    <section class="analysis-panel flow-step is-locked" data-flow-step="analysis" data-step="6" aria-label="Detailed query analysis">
+                        <div class="analysis-head">
+                            <h3 id="analysisTitle">Query anatomy</h3>
+                            <div class="analysis-tabs" role="group" aria-label="Analysis view">
+                                <button class="analysis-tab active" type="button" data-analysis-tab="operators">Query structure</button>
+                                <button class="analysis-tab" type="button" data-analysis-tab="signals">Signals</button>
+                                <button class="analysis-tab" type="button" data-analysis-tab="workflow">Workflow</button>
+                            </div>
+                        </div>
+                        <p class="analysis-intro" id="analysisIntro">Break down the selected query before opening a search result.</p>
+                        <ul class="anatomy-list" id="anatomyList"></ul>
+                    </section>
+                </div>
+            </section>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <span>© <span id="copyrightYear"></span> <strong>RedteamNotes</strong>.</span>
+        <span id="footerNotice">For authorized security research only. Keep scope and logs under your control.</span>
+    </footer>
+
+    <div class="toast" id="toast" role="status" aria-live="polite">
+        <i class="fa-solid fa-circle-check"></i>
+        <span id="toastText">Ready</span>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const dorks = [
+                {
+                    id: "contact-surfaces",
+                    title: "Contact Surface",
+                    category: "Intake",
+                    icon: "fa-solid fa-address-card",
+                    intensity: "Low noise",
+                    operator: "intitle/inurl",
+                    description: "Finds public contact pages and contact form routes that often feed internal inboxes.",
+                    query: '(intitle:"contact us" OR intitle:"contact" OR inurl:"contact-us" OR inurl:"contact_us" OR inurl:"contact")'
+                },
+                {
+                    id: "contact-handlers",
+                    title: "Contact Handlers",
+                    category: "Intake",
+                    icon: "fa-solid fa-file-code",
+                    intensity: "Targeted",
+                    operator: "extensions",
+                    description: "Looks for legacy contact endpoints and static contact form handlers.",
+                    query: '(inurl:"contact.php" OR inurl:"contactus.php" OR inurl:"contact.aspx" OR inurl:"contact.asp" OR inurl:"contact.html" OR inurl:"contact-us.html")'
+                },
+                {
+                    id: "feedback",
+                    title: "Feedback Intake",
+                    category: "Feedback",
+                    icon: "fa-solid fa-comment-dots",
+                    intensity: "Broad",
+                    operator: "feedback",
+                    description: "Surfaces feedback pages, send-feedback routes, and related intake forms.",
+                    query: '(intitle:"feedback" OR intitle:"send feedback" OR inurl:"feedback" OR inurl:"send-feedback" OR inurl:"feedback.php")'
+                },
+                {
+                    id: "zendesk-like",
+                    title: "Attachment Forms",
+                    category: "Support",
+                    icon: "fa-solid fa-paperclip",
+                    intensity: "Targeted",
+                    operator: "intext",
+                    description: "Finds support-style forms that expose optional attachment fields.",
+                    query: '(intext:"Attachments (optional)" OR intext:"Add file" OR intext:"Upload attachment")'
+                },
+                {
+                    id: "support-ticket",
+                    title: "Support Tickets",
+                    category: "Support",
+                    icon: "fa-solid fa-ticket",
+                    intensity: "Targeted",
+                    operator: "ticket",
+                    description: "Finds ticket creation and support request workflows.",
+                    query: '(intitle:"support ticket" OR intitle:"create ticket" OR inurl:"ticket" OR inurl:"support-ticket" OR inurl:"new-request")'
+                },
+                {
+                    id: "support-center",
+                    title: "Support Center",
+                    category: "Support",
+                    icon: "fa-solid fa-life-ring",
+                    intensity: "Broad",
+                    operator: "support",
+                    description: "Maps public support center and help desk entry points.",
+                    query: '(intitle:"support center" OR intitle:"help center" OR inurl:"support" OR inurl:"help" OR inurl:"hc")'
+                },
+                {
+                    id: "submit-request",
+                    title: "Submit Request",
+                    category: "Support",
+                    icon: "fa-solid fa-paper-plane",
+                    intensity: "Low noise",
+                    operator: "request",
+                    description: "Targets submit-a-request routes and message intake pages.",
+                    query: '(intitle:"submit a request" OR intitle:"send us a message" OR inurl:"submit-a-request" OR inurl:"request-form")'
+                },
+                {
+                    id: "submit-pages",
+                    title: "Submit Pages",
+                    category: "Intake",
+                    icon: "fa-solid fa-upload",
+                    intensity: "Broad",
+                    operator: "submit",
+                    description: "Looks for generic submission pages and form endpoints.",
+                    query: '(intitle:"submit" OR intitle:"submit form" OR inurl:"submit" OR inurl:"submit-form" OR inurl:"submission")'
+                },
+                {
+                    id: "report-pages",
+                    title: "Report Pages",
+                    category: "Trust",
+                    icon: "fa-solid fa-flag",
+                    intensity: "Targeted",
+                    operator: "report",
+                    description: "Finds report forms that can route to moderation, safety, or operations teams.",
+                    query: '(intitle:"submit a report" OR intitle:"report an issue" OR inurl:"report" OR inurl:"submit-report")'
+                },
+                {
+                    id: "abuse-report",
+                    title: "Report Abuse",
+                    category: "Trust",
+                    icon: "fa-solid fa-shield",
+                    intensity: "Targeted",
+                    operator: "abuse",
+                    description: "Surfaces abuse-reporting pages and trust-and-safety intake routes.",
+                    query: '(intitle:"report abuse" OR intitle:"abuse report" OR inurl:"abuse" OR inurl:"report-abuse")'
+                },
+                {
+                    id: "bug-report",
+                    title: "Bug Report",
+                    category: "Trust",
+                    icon: "fa-solid fa-bug",
+                    intensity: "Targeted",
+                    operator: "bug",
+                    description: "Finds public bug report forms and product issue intake.",
+                    query: '(intitle:"bug report" OR intitle:"report a bug" OR inurl:"bug-report" OR inurl:"report-bug" OR inurl:"bug")'
+                },
+                {
+                    id: "job-application",
+                    title: "Job Application",
+                    category: "Careers",
+                    icon: "fa-solid fa-briefcase",
+                    intensity: "Broad",
+                    operator: "careers",
+                    description: "Maps job application and applicant intake pages.",
+                    query: '(intitle:"job application" OR intitle:"apply now" OR intitle:"careers" OR inurl:"careers" OR inurl:"jobs" OR inurl:"apply")'
+                },
+                {
+                    id: "resume-upload",
+                    title: "Resume Upload",
+                    category: "Careers",
+                    icon: "fa-solid fa-file-arrow-up",
+                    intensity: "Targeted",
+                    operator: "upload",
+                    description: "Finds hiring workflows that accept resumes, CVs, or uploaded documents.",
+                    query: '(intext:"Upload resume" OR intext:"Upload CV" OR intext:"Attach resume" OR intitle:"submit resume")'
+                },
+                {
+                    id: "newsletter",
+                    title: "Newsletter Signup",
+                    category: "Marketing",
+                    icon: "fa-solid fa-envelope",
+                    intensity: "Broad",
+                    operator: "subscribe",
+                    description: "Finds subscription forms and marketing signup flows.",
+                    query: '(intitle:"newsletter" OR intitle:"subscribe" OR inurl:"newsletter" OR inurl:"subscribe" OR intext:"Subscribe to our newsletter")'
+                },
+                {
+                    id: "testimonial",
+                    title: "Testimonial Submit",
+                    category: "Marketing",
+                    icon: "fa-solid fa-quote-right",
+                    intensity: "Targeted",
+                    operator: "testimonial",
+                    description: "Surfaces testimonial submission forms and customer story intake.",
+                    query: '(intitle:"submit testimonial" OR intitle:"testimonial" OR inurl:"testimonial" OR inurl:"customer-story")'
+                },
+                {
+                    id: "review",
+                    title: "Review Submission",
+                    category: "Marketing",
+                    icon: "fa-solid fa-star",
+                    intensity: "Broad",
+                    operator: "review",
+                    description: "Finds product, service, or location review submission pages.",
+                    query: '(intitle:"write a review" OR intitle:"submit review" OR inurl:"review" OR inurl:"rating")'
+                },
+                {
+                    id: "ask-question",
+                    title: "Ask Question",
+                    category: "Intake",
+                    icon: "fa-solid fa-circle-question",
+                    intensity: "Broad",
+                    operator: "question",
+                    description: "Finds question forms, ask-us pages, and Q&A intake routes.",
+                    query: '(intitle:"ask a question" OR intitle:"question" OR inurl:"ask" OR inurl:"question" OR inurl:"questions")'
+                },
+                {
+                    id: "callback",
+                    title: "Request Callback",
+                    category: "Sales",
+                    icon: "fa-solid fa-phone",
+                    intensity: "Targeted",
+                    operator: "callback",
+                    description: "Finds callback request forms that are commonly reviewed by sales or support staff.",
+                    query: '(intitle:"request a callback" OR intitle:"callback" OR inurl:"callback" OR inurl:"request-call")'
+                },
+                {
+                    id: "quote-request",
+                    title: "Quote Request",
+                    category: "Sales",
+                    icon: "fa-solid fa-calculator",
+                    intensity: "Targeted",
+                    operator: "quote",
+                    description: "Surfaces quote, pricing, and estimate request workflows.",
+                    query: '(intitle:"quote request" OR intitle:"get a quote" OR inurl:"quote" OR inurl:"request-quote" OR inurl:"estimate")'
+                },
+                {
+                    id: "demo-request",
+                    title: "Demo Request",
+                    category: "Sales",
+                    icon: "fa-solid fa-display",
+                    intensity: "Low noise",
+                    operator: "demo",
+                    description: "Finds product demo request pages and sales-assisted forms.",
+                    query: '(intitle:"request a demo" OR intitle:"book a demo" OR inurl:"demo" OR inurl:"request-demo" OR inurl:"book-demo")'
+                },
+                {
+                    id: "registration",
+                    title: "Registration",
+                    category: "Identity",
+                    icon: "fa-solid fa-user-plus",
+                    intensity: "Broad",
+                    operator: "signup",
+                    description: "Maps registration, sign-up, and account creation pages.",
+                    query: '(intitle:"register" OR intitle:"sign up" OR intitle:"signup" OR inurl:"register" OR inurl:"signup" OR inurl:"sign-up")'
+                },
+                {
+                    id: "partner",
+                    title: "Partner Application",
+                    category: "Sales",
+                    icon: "fa-solid fa-handshake",
+                    intensity: "Targeted",
+                    operator: "partner",
+                    description: "Finds partner, reseller, and channel application forms.",
+                    query: '(intitle:"partner application" OR intitle:"become a partner" OR inurl:"partner-application" OR inurl:"become-a-partner" OR inurl:"reseller")'
+                },
+                {
+                    id: "vendor",
+                    title: "Vendor Onboarding",
+                    category: "Operations",
+                    icon: "fa-solid fa-truck-field",
+                    intensity: "Targeted",
+                    operator: "vendor",
+                    description: "Finds vendor, supplier, and procurement intake workflows.",
+                    query: '(intitle:"vendor application" OR intitle:"supplier registration" OR inurl:"vendor" OR inurl:"supplier" OR inurl:"procurement")'
+                },
+                {
+                    id: "complaint",
+                    title: "Complaint Intake",
+                    category: "Operations",
+                    icon: "fa-solid fa-inbox",
+                    intensity: "Targeted",
+                    operator: "complaint",
+                    description: "Surfaces complaint forms and customer escalation intake.",
+                    query: '(intitle:"submit complaint" OR intitle:"file a complaint" OR inurl:"complaint" OR inurl:"grievance")'
+                }
+            ];
+
+            const dorkI18n = {
+                zh: {
+                    "contact-surfaces": {
+                        title: "联系入口",
+                        description: "定位公开的联系页面和联系表单路由，这类入口通常会进入客服、销售或运营人员的后台收件箱。"
+                    },
+                    "contact-handlers": {
+                        title: "联系表单处理器",
+                        description: "查找 contact.php、contact.aspx 等旧式联系表单处理端点，适合发现历史遗留入口。"
+                    },
+                    feedback: {
+                        title: "反馈入口",
+                        description: "发现反馈页面、send-feedback 路由和其他用户意见提交入口。"
+                    },
+                    "zendesk-like": {
+                        title: "附件型表单",
+                        description: "查找带有可选附件、上传文件或添加文件文案的支持类表单。"
+                    },
+                    "support-ticket": {
+                        title: "支持工单",
+                        description: "定位创建工单、提交支持请求或新建请求的页面。"
+                    },
+                    "support-center": {
+                        title: "帮助中心",
+                        description: "梳理公开帮助中心、支持中心和客服入口。"
+                    },
+                    "submit-request": {
+                        title: "提交请求",
+                        description: "定位 submit-a-request、send us a message 等请求提交流程。"
+                    },
+                    "submit-pages": {
+                        title: "通用提交页",
+                        description: "查找泛化的 submit、submission、submit-form 页面和表单端点。"
+                    },
+                    "report-pages": {
+                        title: "报告提交页",
+                        description: "发现可能进入审核、客服、安全或运营团队处理队列的报告表单。"
+                    },
+                    "abuse-report": {
+                        title: "滥用举报",
+                        description: "定位滥用举报、信任与安全团队常见的报告入口。"
+                    },
+                    "bug-report": {
+                        title: "缺陷报告",
+                        description: "查找公开 bug report、report bug 或产品问题提交页面。"
+                    },
+                    "job-application": {
+                        title: "职位申请",
+                        description: "发现招聘、职位申请、apply now 等候选人提交入口。"
+                    },
+                    "resume-upload": {
+                        title: "简历上传",
+                        description: "查找接受简历、CV 或附件上传的招聘流程。"
+                    },
+                    newsletter: {
+                        title: "邮件订阅",
+                        description: "定位 newsletter、subscribe 等市场订阅表单和邮件注册入口。"
+                    },
+                    testimonial: {
+                        title: "客户证言提交",
+                        description: "发现 testimonial、customer story 等客户故事或评价提交入口。"
+                    },
+                    review: {
+                        title: "评论提交",
+                        description: "查找 write a review、rating、review 等产品或服务评论提交页面。"
+                    },
+                    "ask-question": {
+                        title: "提问入口",
+                        description: "定位 ask a question、question、ask 等问答或咨询表单。"
+                    },
+                    callback: {
+                        title: "回拨请求",
+                        description: "发现 request a callback、request-call 等销售或客服回拨表单。"
+                    },
+                    "quote-request": {
+                        title: "报价请求",
+                        description: "定位 get a quote、request quote、estimate 等价格或方案询价流程。"
+                    },
+                    "demo-request": {
+                        title: "演示预约",
+                        description: "查找 request a demo、book demo 等销售跟进型产品演示入口。"
+                    },
+                    registration: {
+                        title: "注册入口",
+                        description: "梳理 register、sign up、signup 等账号创建页面。"
+                    },
+                    partner: {
+                        title: "合作伙伴申请",
+                        description: "发现 partner application、reseller、become a partner 等渠道合作申请表单。"
+                    },
+                    vendor: {
+                        title: "供应商入驻",
+                        description: "查找 vendor、supplier、procurement 等供应商或采购流程入口。"
+                    },
+                    complaint: {
+                        title: "投诉入口",
+                        description: "定位 complaint、grievance 等客户投诉或升级处理表单。"
+                    }
+                },
+                fr: {
+                    "contact-surfaces": {
+                        title: "Surface de contact",
+                        description: "Repère les pages de contact publiques et les formulaires qui alimentent souvent des boîtes internes."
+                    },
+                    "contact-handlers": {
+                        title: "Gestionnaires de contact",
+                        description: "Recherche les anciens points de traitement de formulaires, comme contact.php ou contact.aspx."
+                    },
+                    feedback: {
+                        title: "Entrée de feedback",
+                        description: "Repère les pages de retour utilisateur, les routes send-feedback et les formulaires associés."
+                    },
+                    "zendesk-like": {
+                        title: "Formulaires avec pièces jointes",
+                        description: "Recherche les formulaires de support qui exposent des champs de fichier ou de pièce jointe."
+                    },
+                    "support-ticket": {
+                        title: "Tickets de support",
+                        description: "Repère les parcours de création de ticket et de demande au support."
+                    },
+                    "support-center": {
+                        title: "Centre d'aide",
+                        description: "Cartographie les centres d'aide, portails de support et entrées de service client."
+                    },
+                    "submit-request": {
+                        title: "Soumettre une demande",
+                        description: "Cible les pages submit-a-request et les formulaires de message entrant."
+                    },
+                    "submit-pages": {
+                        title: "Pages de soumission",
+                        description: "Recherche les pages génériques de soumission et les points d'entrée de formulaire."
+                    },
+                    "report-pages": {
+                        title: "Pages de signalement",
+                        description: "Repère les formulaires de signalement pouvant être traités par support, sécurité ou opérations."
+                    },
+                    "abuse-report": {
+                        title: "Signalement d'abus",
+                        description: "Repère les entrées de signalement d'abus et de confiance/sécurité."
+                    },
+                    "bug-report": {
+                        title: "Rapport de bug",
+                        description: "Recherche les formulaires publics de rapport de bug ou de problème produit."
+                    },
+                    "job-application": {
+                        title: "Candidature",
+                        description: "Cartographie les pages de carrière, de candidature et d'envoi de profil."
+                    },
+                    "resume-upload": {
+                        title: "Envoi de CV",
+                        description: "Repère les parcours RH acceptant CV, fichiers ou pièces jointes."
+                    },
+                    newsletter: {
+                        title: "Inscription newsletter",
+                        description: "Repère les formulaires d'abonnement et de capture marketing."
+                    },
+                    testimonial: {
+                        title: "Témoignage client",
+                        description: "Recherche les formulaires de témoignage ou de récit client."
+                    },
+                    review: {
+                        title: "Soumission d'avis",
+                        description: "Repère les pages d'avis, de note ou d'évaluation."
+                    },
+                    "ask-question": {
+                        title: "Poser une question",
+                        description: "Recherche les formulaires de question, de contact conseil ou de Q/R."
+                    },
+                    callback: {
+                        title: "Demande de rappel",
+                        description: "Repère les formulaires de rappel souvent vus par les équipes vente ou support."
+                    },
+                    "quote-request": {
+                        title: "Demande de devis",
+                        description: "Repère les parcours de devis, estimation ou demande de prix."
+                    },
+                    "demo-request": {
+                        title: "Demande de démo",
+                        description: "Recherche les formulaires de démonstration produit et de suivi commercial."
+                    },
+                    registration: {
+                        title: "Inscription",
+                        description: "Cartographie les pages de création de compte, register et sign up."
+                    },
+                    partner: {
+                        title: "Demande partenaire",
+                        description: "Repère les formulaires partenaire, revendeur ou canal commercial."
+                    },
+                    vendor: {
+                        title: "Onboarding fournisseur",
+                        description: "Recherche les entrées fournisseur, achat ou procurement."
+                    },
+                    complaint: {
+                        title: "Réclamation",
+                        description: "Repère les formulaires de plainte, réclamation ou escalade client."
+                    }
+                }
+            };
+
+            const categoryMeta = {
+                All: { icon: "fa-solid fa-layer-group" },
+                Intake: { icon: "fa-solid fa-inbox" },
+                Feedback: { icon: "fa-solid fa-comment-dots" },
+                Support: { icon: "fa-solid fa-headset" },
+                Trust: { icon: "fa-solid fa-shield-halved" },
+                Careers: { icon: "fa-solid fa-briefcase" },
+                Marketing: { icon: "fa-solid fa-bullhorn" },
+                Sales: { icon: "fa-solid fa-handshake-angle" },
+                Identity: { icon: "fa-solid fa-user-lock" },
+                Operations: { icon: "fa-solid fa-diagram-project" }
+            };
+
+            const i18n = {
+                en: {
+                    projectName: "bXSS Discovery",
+                    scopeLabel: "Authorized target scope",
+                    scopePlaceholder: "redteamnotes.com or https://app.redteamnotes.com/path",
+                    noActiveScope: "No active scope",
+                    activeScope: "Active scope",
+                    authLabel: "Testing authorization confirmed",
+                    setScope: "Set scope",
+                    scopeNotConfirmed: "Scope not confirmed",
+                    scopeConfirmed: "Scope confirmed",
+                    notConfirmed: "not confirmed",
+                    confirmed: "confirmed",
+                    mission: "Mission",
+                    run: "Query parameters",
+                    triage: "Triage note",
+                    templates: "Templates",
+                    visible: "Visible",
+                    queued: "Queued",
+                    history: "History",
+                    categories: "Categories",
+                    operators: "Result filters",
+                    resetFilters: "Reset filters",
+                    themeTip: "Toggle theme",
+                    noise: "Reduce docs, blog, press, and policy pages",
+                    param: "Bias toward parameterized and form-like URLs",
+                    fresh: "Add a recent-results bias for triage",
+                    searchPlaceholder: "Filter templates, category, match type...",
+                    discover: "Discover",
+                    queue: "Queue",
+                    historyView: "History",
+                    noTemplates: "No templates match the current filters.",
+                    noQueue: "No queued searches yet.",
+                    noHistory: "No execution history yet.",
+                    queryPreview: "Generated query",
+                    queryHint: "Read before opening",
+                    scope: "Scope",
+                    engine: "Engine",
+                    currentEngine: "Search engine",
+                    searchWith: engine => `Search with ${engine}`,
+                    authorization: "Authorization",
+                    footerNotice: "For authorized security research only. Keep scope and logs under your control.",
+                    notePlaceholder: "Triage note for queue/history",
+                    copy: "Copy",
+                    open: "Open",
+                    clear: "Clear",
+                    analysisTitle: "Query anatomy",
+                    analysisTabs: {
+                        operators: "Query structure",
+                        signals: "Result signals",
+                        workflow: "Triage flow"
+                    },
+                    analysisIntro: {
+                        operators: "Read the query as a set of search constraints. Each block changes what the search engine is allowed to return.",
+                        signals: "Use these cues to decide whether a result is worth opening, queueing, or ignoring.",
+                        workflow: "A practical sequence for moving from search query to useful, documented discovery notes."
+                    },
+                    analysisLabels: {
+                        purpose: "Purpose",
+                        why: "Why it matters",
+                        triage: "How to triage",
+                        watch: "Watch for"
+                    },
+                    tutorialTitle: "How to use this result",
+                    defaultTitle: "Select a dork template",
+                    defaultDescription: "Pick a template from Discover to generate a scoped query.",
+                    explainer: title => `${title} is a discovery query. It does not test a target by itself; it narrows public search results so you can review candidate intake pages inside an authorized assessment.`,
+                    anatomy: {
+                        scope: scope => [`site:${scope}`, "Limits results to the authorized domain. This is the guardrail that keeps the search inside scope."],
+                        template: dork => [dork.query, `Searches for the selected ${dork.category} surface using title, URL, or page-text matches.`],
+                        noise: ["-inurl:blog -inurl:docs -inurl:press -inurl:privacy -inurl:terms", "Removes common informational pages so form-like results are easier to triage."],
+                        param: ['(inurl:"?" OR inurl:"=" OR inurl:"form")', "Adds a bias toward URLs that look parameterized or form-driven."],
+                        fresh: ["after:2024-01-01", "Prefers more recent indexed pages for faster triage."],
+                        engine: engine => [engine, "Controls where the query opens. Different engines index different pages, so comparing engines can reveal gaps."]
+                    },
+                    tutorial: [
+                        ["1. Confirm scope", "Check that the normalized scope matches the assessment rules before copying, queueing, or opening a query."],
+                        ["2. Read the query logic", "Understand whether the template is matching titles, URLs, or page text; this tells you how much confidence to place in a result."],
+                        ["3. Triage candidates", "Prioritize pages that accept user input and are likely to be reviewed by staff, such as tickets, uploads, callbacks, reviews, or reports."],
+                        ["4. Record context", "Queue useful searches with a short reason, so later validation can trace why a candidate was selected."]
+                    ],
+                    categoriesMap: {
+                        All: "All",
+                        Intake: "Intake",
+                        Feedback: "Feedback",
+                        Support: "Support",
+                        Trust: "Trust",
+                        Careers: "Careers",
+                        Marketing: "Marketing",
+                        Sales: "Sales",
+                        Identity: "Identity",
+                        Operations: "Operations",
+                        History: "History"
+                    },
+                    intensityMap: {
+                        "Low noise": "Low noise",
+                        Targeted: "Targeted",
+                        Broad: "Broad"
+                    },
+                    toast: {
+                        filtersReset: "Filters reset",
+                        invalidScope: "Enter a valid domain scope",
+                        scopeSet: scope => `Scope set to ${scope}`,
+                        queryCopied: "Query copied",
+                        searchQueued: "Search queued",
+                        duplicate: "That query is already queued",
+                        searchOpened: "Search opened",
+                        queuedOpened: "Queued search opened",
+                        queuedCopied: "Queued query copied",
+                        queueRemoved: "Queue item removed",
+                        historyCopied: "History query copied",
+                        historyRequeued: "History item requeued",
+                        composerCleared: "Composer cleared",
+                        setScopeFirst: "Set a valid scope first",
+                        confirmAuthFirst: "Confirm testing authorization first"
+                    }
+                },
+                zh: {
+                    projectName: "bXSS Discovery",
+                    scopeLabel: "授权目标范围",
+                    scopePlaceholder: "redteamnotes.com 或 https://app.redteamnotes.com/path",
+                    noActiveScope: "未设置范围",
+                    activeScope: "范围已生效",
+                    authLabel: "已确认测试授权",
+                    setScope: "设置范围",
+                    scopeNotConfirmed: "范围未确认",
+                    scopeConfirmed: "范围已确认",
+                    notConfirmed: "未确认",
+                    confirmed: "已确认",
+                    mission: "任务概览",
+                    run: "查询参数",
+                    triage: "分诊与执行",
+                    templates: "模板",
+                    visible: "可见",
+                    queued: "队列",
+                    history: "历史",
+                    categories: "分类",
+                    operators: "结果过滤",
+                    resetFilters: "重置筛选",
+                    themeTip: "切换主题",
+                    noise: "降低文档、博客、新闻、政策页噪音",
+                    param: "偏向带参数或表单特征的 URL",
+                    fresh: "加入近期结果偏向，便于分诊",
+                    searchPlaceholder: "筛选模板、分类、匹配位置...",
+                    discover: "发现",
+                    queue: "队列",
+                    historyView: "历史",
+                    noTemplates: "当前筛选下没有匹配模板。",
+                    noQueue: "还没有加入队列的搜索。",
+                    noHistory: "还没有执行历史。",
+                    queryPreview: "生成的查询语句",
+                    queryHint: "打开前先读懂",
+                    scope: "范围",
+                    engine: "搜索引擎",
+                    currentEngine: "搜索引擎",
+                    searchWith: engine => `在 ${engine} 中搜索`,
+                    authorization: "授权",
+                    footerNotice: "仅用于授权安全研究。请自行控制测试范围、查询记录与浏览器日志。",
+                    notePlaceholder: "给队列/历史添加分诊备注",
+                    copy: "复制",
+                    open: "打开",
+                    clear: "清空",
+                    analysisTitle: "查询语句解析",
+                    analysisTabs: {
+                        operators: "查询结构",
+                        signals: "命中判断",
+                        workflow: "分诊流程"
+                    },
+                    analysisIntro: {
+                        operators: "把查询语句当成一组搜索约束来读：每一段都在改变搜索引擎可以返回什么、排除什么、优先展示什么。",
+                        signals: "这里用于判断搜索结果是否值得打开、加入队列或忽略。重点不是结果数量，而是入口是否可能被人员查看和处理。",
+                        workflow: "从生成查询到形成可复盘记录的推荐流程。适合授权测试、漏洞赏金范围内的发现阶段。"
+                    },
+                    analysisLabels: {
+                        purpose: "作用",
+                        why: "为什么这样写",
+                        triage: "人工怎么判断",
+                        watch: "注意点"
+                    },
+                    tutorialTitle: "如何使用这个结果",
+                    defaultTitle: "选择一个 dork 模板",
+                    defaultDescription: "从发现视图选择模板后，这里会生成带 scope 的查询语句。",
+                    explainer: title => `${title} 是一个发现型查询。它本身不会测试目标，只是收窄公开搜索结果，帮助你在授权评估中找到候选表单和人工处理入口。`,
+                    anatomy: {
+                        scope: scope => [`site:${scope}`, "把结果限制在授权域名内，这是避免越界搜索的第一层约束。"],
+                        template: dork => [dork.query, `根据所选的 ${categoryLabel(dork.category)} 场景，用标题、路径或正文匹配寻找候选入口。`],
+                        noise: ["-inurl:blog -inurl:docs -inurl:press -inurl:privacy -inurl:terms", "排除常见信息页，让表单类结果更容易被分诊。"],
+                        param: ['(inurl:"?" OR inurl:"=" OR inurl:"form")', "额外偏向带查询参数或表单路径特征的页面。"],
+                        fresh: ["after:2024-01-01", "偏向较新的索引结果，适合快速摸清当前暴露面。"],
+                        engine: engine => [engine, "决定查询在哪个搜索引擎打开。不同引擎索引范围不同，可用于交叉确认。"]
+                    },
+                    tutorial: [
+                        ["1. 确认范围", "先确认规范化后的域名与项目授权一致，再复制、入队或打开查询。根域、子域、第三方平台的边界要按项目规则判断。"],
+                        ["2. 读懂查询逻辑", "看清模板是在匹配标题、URL 路径还是页面正文。标题命中通常更相关，正文命中更宽泛，URL 命中常能暴露真实功能路径。"],
+                        ["3. 分诊候选", "优先打开会收集用户输入并可能被人员查看的页面，例如工单、附件上传、回拨、招聘申请、评论、举报或报价请求。"],
+                        ["4. 记录上下文", "把有价值的查询加入队列，并写一句明确原因，例如“含附件字段的支持工单入口”。这样后续验证和报告都更容易复盘。"]
+                    ],
+                    categoriesMap: {
+                        All: "全部",
+                        Intake: "入口",
+                        Feedback: "反馈",
+                        Support: "支持",
+                        Trust: "信任安全",
+                        Careers: "招聘",
+                        Marketing: "市场",
+                        Sales: "销售",
+                        Identity: "身份",
+                        Operations: "运营",
+                        History: "历史"
+                    },
+                    intensityMap: {
+                        "Low noise": "低噪音",
+                        Targeted: "定向",
+                        Broad: "宽泛"
+                    },
+                    toast: {
+                        filtersReset: "筛选已重置",
+                        invalidScope: "请输入有效域名范围",
+                        scopeSet: scope => `范围已设置为 ${scope}`,
+                        queryCopied: "查询已复制",
+                        searchQueued: "搜索已加入队列",
+                        duplicate: "这个查询已经在队列中",
+                        searchOpened: "搜索已打开",
+                        queuedOpened: "队列搜索已打开",
+                        queuedCopied: "队列查询已复制",
+                        queueRemoved: "队列项已移除",
+                        historyCopied: "历史查询已复制",
+                        historyRequeued: "历史项已重新加入队列",
+                        composerCleared: "编辑区已清空",
+                        setScopeFirst: "请先设置有效范围",
+                        confirmAuthFirst: "请先确认测试授权"
+                    }
+                },
+                fr: {
+                    projectName: "bXSS Discovery",
+                    scopeLabel: "Périmètre cible autorisé",
+                    scopePlaceholder: "redteamnotes.com ou https://app.redteamnotes.com/path",
+                    noActiveScope: "Aucun périmètre actif",
+                    activeScope: "Périmètre actif",
+                    authLabel: "Autorisation de test confirmée",
+                    setScope: "Définir le périmètre",
+                    scopeNotConfirmed: "Périmètre non confirmé",
+                    scopeConfirmed: "Périmètre confirmé",
+                    notConfirmed: "non confirmé",
+                    confirmed: "confirmé",
+                    mission: "Mission",
+                    run: "Paramètres de requête",
+                    triage: "Note de triage",
+                    templates: "Modèles",
+                    visible: "Visibles",
+                    queued: "En file",
+                    history: "Historique",
+                    categories: "Catégories",
+                    operators: "Filtres de résultat",
+                    resetFilters: "Réinitialiser les filtres",
+                    themeTip: "Changer de thème",
+                    noise: "Réduire les pages docs, blog, presse et politiques",
+                    param: "Favoriser les URL paramétrées ou proches de formulaires",
+                    fresh: "Ajouter un biais vers des résultats récents",
+                    searchPlaceholder: "Filtrer modèles, catégories, zones de correspondance...",
+                    discover: "Découvrir",
+                    queue: "File",
+                    historyView: "Historique",
+                    noTemplates: "Aucun modèle ne correspond aux filtres.",
+                    noQueue: "Aucune recherche en file pour le moment.",
+                    noHistory: "Aucun historique d'exécution pour le moment.",
+                    queryPreview: "Requête générée",
+                    queryHint: "Lire avant d'ouvrir",
+                    scope: "Périmètre",
+                    engine: "Moteur",
+                    currentEngine: "Moteur",
+                    searchWith: engine => `Rechercher avec ${engine}`,
+                    authorization: "Autorisation",
+                    footerNotice: "Réservé aux recherches de sécurité autorisées. Gardez le périmètre et les journaux sous votre contrôle.",
+                    notePlaceholder: "Note de triage pour file/historique",
+                    copy: "Copier",
+                    open: "Ouvrir",
+                    clear: "Effacer",
+                    analysisTitle: "Anatomie de la requête",
+                    analysisTabs: {
+                        operators: "Structure de requête",
+                        signals: "Signaux de résultat",
+                        workflow: "Flux de triage"
+                    },
+                    analysisIntro: {
+                        operators: "Lisez la requête comme un ensemble de contraintes. Chaque bloc modifie les résultats que le moteur peut retourner.",
+                        signals: "Utilisez ces indices pour décider si un résultat mérite d'être ouvert, mis en file ou ignoré.",
+                        workflow: "Une séquence pratique pour passer de la requête aux notes de découverte exploitables."
+                    },
+                    analysisLabels: {
+                        purpose: "Rôle",
+                        why: "Pourquoi",
+                        triage: "Triage",
+                        watch: "Attention"
+                    },
+                    tutorialTitle: "Comment exploiter ce résultat",
+                    defaultTitle: "Sélectionner un modèle de dork",
+                    defaultDescription: "Choisissez un modèle dans Découvrir pour générer une requête limitée au périmètre.",
+                    explainer: title => `${title} est une requête de découverte. Elle ne teste pas la cible directement; elle réduit les résultats publics pour trouver des pages candidates dans une évaluation autorisée.`,
+                    anatomy: {
+                        scope: scope => [`site:${scope}`, "Limite les résultats au domaine autorisé. C'est le garde-fou principal du périmètre."],
+                        template: dork => [dork.query, `Recherche la surface ${categoryLabel(dork.category)} sélectionnée via titres, URL ou texte visible.`],
+                        noise: ["-inurl:blog -inurl:docs -inurl:press -inurl:privacy -inurl:terms", "Écarte les pages informatives courantes afin de faciliter le triage des pages de type formulaire."],
+                        param: ['(inurl:"?" OR inurl:"=" OR inurl:"form")', "Ajoute un biais vers les URL paramétrées ou orientées formulaire."],
+                        fresh: ["after:2024-01-01", "Favorise les pages indexées récemment pour accélérer le triage."],
+                        engine: engine => [engine, "Choisit le moteur qui ouvrira la requête. Les moteurs n'indexent pas toujours les mêmes pages."]
+                    },
+                    tutorial: [
+                        ["1. Confirmer le périmètre", "Vérifiez que le domaine normalisé correspond aux règles d'autorisation avant de copier, mettre en file ou ouvrir la requête."],
+                        ["2. Lire la logique", "Comprenez si le modèle cible les titres, les URL ou le texte visible; cela indique la confiance à accorder au résultat."],
+                        ["3. Trier les candidats", "Priorisez les pages qui acceptent une saisie utilisateur et peuvent être relues par une équipe: ticket, fichier, rappel, avis, rapport ou devis."],
+                        ["4. Garder le contexte", "Mettez les recherches utiles en file avec une raison courte afin de pouvoir justifier la sélection plus tard."]
+                    ],
+                    categoriesMap: {
+                        All: "Tous",
+                        Intake: "Entrées",
+                        Feedback: "Feedback",
+                        Support: "Support",
+                        Trust: "Confiance",
+                        Careers: "Carrières",
+                        Marketing: "Marketing",
+                        Sales: "Ventes",
+                        Identity: "Identité",
+                        Operations: "Opérations",
+                        History: "Historique"
+                    },
+                    intensityMap: {
+                        "Low noise": "Peu bruyant",
+                        Targeted: "Ciblé",
+                        Broad: "Large"
+                    },
+                    toast: {
+                        filtersReset: "Filtres réinitialisés",
+                        invalidScope: "Saisissez un domaine valide",
+                        scopeSet: scope => `Périmètre défini sur ${scope}`,
+                        queryCopied: "Requête copiée",
+                        searchQueued: "Recherche ajoutée à la file",
+                        duplicate: "Cette requête est déjà en file",
+                        searchOpened: "Recherche ouverte",
+                        queuedOpened: "Recherche de la file ouverte",
+                        queuedCopied: "Requête de la file copiée",
+                        queueRemoved: "Élément retiré de la file",
+                        historyCopied: "Requête d'historique copiée",
+                        historyRequeued: "Élément d'historique remis en file",
+                        composerCleared: "Compositeur effacé",
+                        setScopeFirst: "Définissez d'abord un périmètre valide",
+                        confirmAuthFirst: "Confirmez d'abord l'autorisation de test"
+                    }
+                }
+            };
+
+            const engines = {
+                google: query => `https://www.google.com/search?q=${encodeURIComponent(query)}`,
+                bing: query => `https://www.bing.com/search?q=${encodeURIComponent(query)}`,
+                duck: query => `https://duckduckgo.com/?q=${encodeURIComponent(query)}`
+            };
+
+            const engineMeta = {
+                google: {
+                    label: "Google",
+                    shortLabel: "Google"
+                },
+                bing: {
+                    label: "Bing",
+                    shortLabel: "Bing"
+                },
+                duck: {
+                    label: "DuckDuckGo",
+                    shortLabel: "Duck"
+                }
+            };
+
+            const storage = {
+                theme: "bxss-discovery-theme-v2",
+                lang: "bxss-discovery-lang",
+                scope: "bxss-discovery-scope",
+                queue: "bxss-discovery-queue",
+                history: "bxss-discovery-history"
+            };
+
+            const state = {
+                theme: localStorage.getItem(storage.theme) || "day",
+                lang: localStorage.getItem(storage.lang) || "en",
+                scope: localStorage.getItem(storage.scope) || "",
+                category: "All",
+                search: "",
+                engine: "google",
+                view: "discover",
+                analysisTab: "operators",
+                selectedId: "contact-surfaces",
+                authorized: false,
+                queue: readJson(storage.queue, []),
+                history: readJson(storage.history, []),
+                options: {
+                    reduceNoise: true,
+                    paramBias: false,
+                    freshBias: false
+                }
+            };
+
+            const els = {
+                analysisIntro: document.getElementById("analysisIntro"),
+                analysisTitle: document.getElementById("analysisTitle"),
+                authCheck: document.getElementById("authCheck"),
+                authLabel: document.getElementById("authLabel"),
+                authReadout: document.getElementById("authReadout"),
+                authReadoutLabel: document.getElementById("authReadoutLabel"),
+                authStatus: document.getElementById("authStatus"),
+                authStatusText: document.getElementById("authStatusText"),
+                brandName: document.getElementById("brandName"),
+                categoriesTitle: document.getElementById("categoriesTitle"),
+                categoryList: document.getElementById("categoryList"),
+                clearBtn: document.getElementById("clearBtn"),
+                clearLabel: document.getElementById("clearLabel"),
+                copyrightYear: document.getElementById("copyrightYear"),
+                copyBtn: document.getElementById("copyBtn"),
+                copyLabel: document.getElementById("copyLabel"),
+                dorkGrid: document.getElementById("dorkGrid"),
+                discoverView: document.getElementById("discoverView"),
+                engineReadoutLabel: document.getElementById("engineReadoutLabel"),
+                emptyDiscover: document.getElementById("emptyDiscover"),
+                emptyHistory: document.getElementById("emptyHistory"),
+                emptyQueue: document.getElementById("emptyQueue"),
+                engineCardLabel: document.getElementById("engineCardLabel"),
+                engineCardName: document.getElementById("engineCardName"),
+                engineReadout: document.getElementById("engineReadout"),
+                footerNotice: document.getElementById("footerNotice"),
+                freshLabel: document.getElementById("freshLabel"),
+                freshToggle: document.getElementById("freshToggle"),
+                historyList: document.getElementById("historyList"),
+                historyMetric: document.getElementById("historyMetric"),
+                historyMetricLabel: document.getElementById("historyMetricLabel"),
+                historyView: document.getElementById("historyView"),
+                missionTitle: document.getElementById("missionTitle"),
+                noiseLabel: document.getElementById("noiseLabel"),
+                noiseToggle: document.getElementById("noiseToggle"),
+                normalizeBtn: document.getElementById("normalizeBtn"),
+                notesInput: document.getElementById("notesInput"),
+                openLabel: document.getElementById("openLabel"),
+                openBtn: document.getElementById("openBtn"),
+                operatorsTitle: document.getElementById("operatorsTitle"),
+                paramLabel: document.getElementById("paramLabel"),
+                paramToggle: document.getElementById("paramToggle"),
+                queryExplainer: document.getElementById("queryExplainer"),
+                queryHint: document.getElementById("queryHint"),
+                queryPreview: document.getElementById("queryPreview"),
+                queryPreviewLabel: document.getElementById("queryPreviewLabel"),
+                queueLabel: document.getElementById("queueLabel"),
+                queueBtn: document.getElementById("queueBtn"),
+                queueList: document.getElementById("queueList"),
+                queueMetric: document.getElementById("queueMetric"),
+                queuedMetricLabel: document.getElementById("queuedMetricLabel"),
+                queueView: document.getElementById("queueView"),
+                resetFiltersBtn: document.getElementById("resetFiltersBtn"),
+                runTitle: document.getElementById("runTitle"),
+                scopeLabel: document.getElementById("scopeLabel"),
+                scopeHint: document.getElementById("scopeHint"),
+                scopeInput: document.getElementById("scopeInput"),
+                scopeReadout: document.getElementById("scopeReadout"),
+                scopeReadoutLabel: document.getElementById("scopeReadoutLabel"),
+                selectedCategory: document.getElementById("selectedCategory"),
+                selectedDescription: document.getElementById("selectedDescription"),
+                selectedIntensity: document.getElementById("selectedIntensity"),
+                selectedOperator: document.getElementById("selectedOperator"),
+                selectedTitle: document.getElementById("selectedTitle"),
+                setScopeLabel: document.getElementById("setScopeLabel"),
+                templateMetric: document.getElementById("templateMetric"),
+                templateSearch: document.getElementById("templateSearch"),
+                templatesMetricLabel: document.getElementById("templatesMetricLabel"),
+                themeToggle: document.getElementById("themeToggle"),
+                toast: document.getElementById("toast"),
+                toastText: document.getElementById("toastText"),
+                triageTitle: document.getElementById("triageTitle"),
+                tutorialList: document.getElementById("tutorialList"),
+                tutorialTitle: document.getElementById("tutorialTitle"),
+                visibleMetric: document.getElementById("visibleMetric"),
+                visibleMetricLabel: document.getElementById("visibleMetricLabel"),
+                anatomyList: document.getElementById("anatomyList")
+            };
+
+            init();
+
+            function init() {
+                document.documentElement.setAttribute("data-theme", state.theme === "day" ? "day" : "night");
+                document.documentElement.setAttribute("lang", state.lang === "zh" ? "zh-CN" : state.lang);
+                document.querySelectorAll("[data-lang]").forEach(button => {
+                    button.classList.toggle("active", button.dataset.lang === state.lang);
+                });
+                els.copyrightYear.textContent = new Date().getFullYear();
+                updateThemeIcon();
+                els.scopeInput.value = state.scope;
+                els.templateMetric.textContent = dorks.length;
+                bindEvents();
+                applyTranslations();
+                renderCategories();
+                renderAll();
+                updateScopeState(false);
+            }
+
+            function bindEvents() {
+                els.themeToggle.addEventListener("click", toggleTheme);
+                els.normalizeBtn.addEventListener("click", () => updateScopeState(true));
+                els.scopeInput.addEventListener("blur", () => updateScopeState(true));
+                els.scopeInput.addEventListener("input", () => updateScopeState(false));
+                els.authCheck.addEventListener("change", () => {
+                    state.authorized = els.authCheck.checked;
+                    renderInspector();
+                    updateAuthStatus();
+                });
+
+                document.querySelectorAll("[data-lang]").forEach(button => {
+                    button.addEventListener("click", () => {
+                        state.lang = button.dataset.lang;
+                        localStorage.setItem(storage.lang, state.lang);
+                        document.documentElement.setAttribute("lang", state.lang === "zh" ? "zh-CN" : state.lang);
+                        document.querySelectorAll("[data-lang]").forEach(item => item.classList.toggle("active", item === button));
+                        applyTranslations();
+                        renderCategories();
+                        renderAll();
+                    });
+                });
+
+                els.templateSearch.addEventListener("input", event => {
+                    state.search = event.target.value.trim().toLowerCase();
+                    renderDiscover();
+                });
+
+                els.resetFiltersBtn.addEventListener("click", () => {
+                    state.category = "All";
+                    state.search = "";
+                    els.templateSearch.value = "";
+                    renderCategories();
+                    renderDiscover();
+                    showToast(t().toast.filtersReset);
+                });
+
+                document.querySelectorAll("[data-engine]").forEach(control => {
+                    control.addEventListener("change", () => {
+                        if (!control.checked && control.dataset.engine === state.engine) {
+                            control.checked = true;
+                            return;
+                        }
+                        state.engine = control.dataset.engine;
+                        syncEngineButtons();
+                        renderInspector();
+                    });
+                });
+
+                document.querySelectorAll("[data-view]").forEach(button => {
+                    button.addEventListener("click", () => setView(button.dataset.view));
+                });
+
+                document.querySelectorAll("[data-analysis-tab]").forEach(button => {
+                    button.addEventListener("click", () => {
+                        state.analysisTab = button.dataset.analysisTab;
+                        renderAnalysisTabs();
+                        renderInspector();
+                    });
+                });
+
+                els.noiseToggle.addEventListener("change", () => {
+                    state.options.reduceNoise = els.noiseToggle.checked;
+                    renderInspector();
+                });
+
+                els.paramToggle.addEventListener("change", () => {
+                    state.options.paramBias = els.paramToggle.checked;
+                    renderInspector();
+                });
+
+                els.freshToggle.addEventListener("change", () => {
+                    state.options.freshBias = els.freshToggle.checked;
+                    renderInspector();
+                });
+
+                els.notesInput.addEventListener("input", updateFlowSteps);
+                els.copyBtn.addEventListener("click", copyCurrentQuery);
+                els.queueBtn.addEventListener("click", queueCurrentQuery);
+                els.openBtn.addEventListener("click", openCurrentQuery);
+                els.clearBtn.addEventListener("click", clearComposer);
+
+                document.addEventListener("keydown", event => {
+                    if (event.key === "/" && document.activeElement !== els.templateSearch && document.activeElement !== els.scopeInput && document.activeElement !== els.notesInput) {
+                        event.preventDefault();
+                        els.templateSearch.focus();
+                    }
+                });
+            }
+
+            function t() {
+                return i18n[state.lang] || i18n.en;
+            }
+
+            function applyTranslations() {
+                const copy = t();
+
+                els.brandName.textContent = copy.projectName;
+                els.scopeLabel.textContent = copy.scopeLabel;
+                els.scopeInput.placeholder = copy.scopePlaceholder;
+                els.scopeHint.textContent = isValidScope(state.scope) ? copy.activeScope : copy.noActiveScope;
+                els.authLabel.textContent = copy.authLabel;
+                els.setScopeLabel.textContent = copy.setScope;
+                els.missionTitle.textContent = copy.mission;
+                els.runTitle.textContent = copy.run;
+                els.triageTitle.textContent = copy.triage;
+                els.templatesMetricLabel.textContent = copy.templates;
+                els.visibleMetricLabel.textContent = copy.visible;
+                els.queuedMetricLabel.textContent = copy.queued;
+                els.historyMetricLabel.textContent = copy.history;
+                els.categoriesTitle.textContent = copy.templates;
+                els.operatorsTitle.textContent = copy.operators;
+                els.noiseLabel.textContent = copy.noise;
+                els.paramLabel.textContent = copy.param;
+                els.freshLabel.textContent = copy.fresh;
+                els.templateSearch.placeholder = copy.searchPlaceholder;
+                els.resetFiltersBtn.setAttribute("aria-label", copy.resetFilters);
+                els.resetFiltersBtn.dataset.tooltip = copy.resetFilters;
+                els.themeToggle.setAttribute("aria-label", copy.themeTip);
+                els.themeToggle.dataset.tooltip = copy.themeTip;
+                els.queryPreviewLabel.textContent = copy.queryPreview;
+                els.queryHint.textContent = copy.queryHint;
+                els.scopeReadoutLabel.textContent = copy.scope;
+                els.engineReadoutLabel.textContent = copy.engine;
+                els.engineCardLabel.textContent = copy.currentEngine;
+                els.authReadoutLabel.textContent = copy.authorization;
+                els.footerNotice.textContent = copy.footerNotice;
+                els.notesInput.placeholder = copy.notePlaceholder;
+                els.copyLabel.textContent = copy.copy;
+                els.queueLabel.textContent = copy.queue;
+                els.openLabel.textContent = copy.open;
+                els.clearLabel.textContent = copy.clear;
+                els.analysisTitle.textContent = copy.analysisTitle;
+                els.tutorialTitle.textContent = copy.tutorialTitle;
+                renderAnalysisTabs();
+
+                document.querySelector('[data-view="discover"]').textContent = copy.discover;
+                document.querySelector('[data-view="queue"]').textContent = copy.queue;
+                document.querySelector('[data-view="history"]').textContent = copy.historyView;
+                els.emptyDiscover.querySelector("p").textContent = copy.noTemplates;
+                els.emptyQueue.querySelector("p").textContent = copy.noQueue;
+                els.emptyHistory.querySelector("p").textContent = copy.noHistory;
+            }
+
+            function renderAnalysisTabs() {
+                const copy = t();
+                document.querySelectorAll("[data-analysis-tab]").forEach(button => {
+                    const tab = button.dataset.analysisTab;
+                    button.textContent = copy.analysisTabs[tab] || tab;
+                    button.classList.toggle("active", tab === state.analysisTab);
+                });
+                if (state.lang === "zh") {
+                    els.analysisIntro.textContent = "每段说明都压缩了三层判断：它在查询里起什么作用、为什么要这样写、人工分诊时该看什么。";
+                } else if (state.lang === "fr") {
+                    els.analysisIntro.textContent = "Chaque paragraphe résume le rôle du bloc, la raison de son écriture et la manière de le trier manuellement.";
+                } else {
+                    els.analysisIntro.textContent = "Each paragraph compresses what the block does, why it is written that way, and how to judge it manually.";
+                }
+            }
+
+            function renderAll() {
+                renderDiscover();
+                renderInspector();
+                renderQueue();
+                renderHistory();
+                updateAuthStatus();
+                updateMetrics();
+            }
+
+            function renderCategories() {
+                const counts = dorks.reduce((acc, dork) => {
+                    acc[dork.category] = (acc[dork.category] || 0) + 1;
+                    return acc;
+                }, { All: dorks.length });
+
+                const categories = ["All", ...Object.keys(categoryMeta).filter(name => name !== "All" && counts[name])];
+                els.categoryList.innerHTML = categories.map(category => {
+                    const meta = categoryMeta[category] || categoryMeta.All;
+                    return `
+                        <button class="category-btn ${state.category === category ? "active" : ""}" type="button" data-category="${escapeHtml(category)}">
+                            <i class="${meta.icon}"></i>
+                            <span>${escapeHtml(categoryLabel(category))}</span>
+                            <strong>${counts[category] || 0}</strong>
+                        </button>
+                    `;
+                }).join("");
+
+                els.categoryList.querySelectorAll("[data-category]").forEach(button => {
+                    button.addEventListener("click", () => {
+                        state.category = button.dataset.category;
+                        ensureSelectedVisible();
+                        renderCategories();
+                        renderDiscover();
+                        renderInspector();
+                    });
+                });
+            }
+
+            function renderDiscover() {
+                const visible = getVisibleDorks();
+                els.visibleMetric.textContent = visible.length;
+                els.emptyDiscover.classList.toggle("hidden", visible.length > 0);
+                els.dorkGrid.innerHTML = visible.map(dork => `
+                    <article class="dork-card ${state.selectedId === dork.id ? "active" : ""}" data-id="${escapeHtml(dork.id)}" tabindex="0" role="button" aria-label="${escapeHtml(dorkTitle(dork))}">
+                        <div class="card-top">
+                            <span class="card-icon"><i class="${dork.icon}"></i></span>
+                            <span class="tag ${tagTone(dork.intensity)}">${escapeHtml(intensityLabel(dork.intensity))}</span>
+                        </div>
+                        <h3>${escapeHtml(dorkTitle(dork))}</h3>
+                        <p>${escapeHtml(dorkDescription(dork))}</p>
+                        <div class="card-meta">
+                            <span>${escapeHtml(categoryLabel(dork.category))}</span>
+                            <span>${escapeHtml(dorkMatchLabel(dork))}</span>
+                        </div>
+                    </article>
+                `).join("");
+
+                els.dorkGrid.querySelectorAll(".dork-card").forEach(card => {
+                    card.addEventListener("click", () => selectDork(card.dataset.id));
+                    card.addEventListener("keydown", event => {
+                        if (event.key === "Enter" || event.key === " ") {
+                            event.preventDefault();
+                            selectDork(card.dataset.id);
+                        }
+                    });
+                });
+            }
+
+            function renderInspector() {
+                const selected = getSelectedDork();
+                const query = buildQuery(selected);
+                const hasScope = isValidScope(state.scope);
+                const readyToOpen = Boolean(selected && hasScope && state.authorized);
+                const copy = t();
+
+                els.selectedTitle.textContent = selected ? dorkTitle(selected) : copy.defaultTitle;
+                els.selectedDescription.textContent = selected ? dorkDescription(selected) : copy.defaultDescription;
+                els.selectedCategory.textContent = selected ? categoryLabel(selected.category) : categoryLabel("All");
+                els.selectedIntensity.textContent = selected ? intensityLabel(selected.intensity) : "";
+                els.selectedOperator.textContent = selected ? dorkMatchLabel(selected) : "";
+                els.scopeReadout.textContent = hasScope ? state.scope : "{scope}";
+                updateEngineIdentity();
+                els.authReadout.textContent = state.authorized ? copy.confirmed : copy.notConfirmed;
+                els.queryPreview.value = query;
+                els.queryExplainer.textContent = selected ? copy.explainer(dorkTitle(selected)) : copy.defaultDescription;
+                renderAnatomy(selected);
+                renderTutorial();
+                els.copyBtn.disabled = !selected || !hasScope;
+                els.queueBtn.disabled = !readyToOpen;
+                els.openBtn.disabled = !readyToOpen;
+                updateFlowSteps();
+            }
+
+            function syncEngineButtons() {
+                document.querySelectorAll("[data-engine]").forEach(control => {
+                    const active = control.dataset.engine === state.engine;
+                    control.checked = active;
+                    control.closest(".engine-option")?.classList.toggle("active", active);
+                });
+            }
+
+            function updateEngineIdentity() {
+                const meta = getEngineMeta(state.engine);
+                els.engineReadout.textContent = meta.shortLabel;
+                els.engineCardName.textContent = t().searchWith(meta.label);
+            }
+
+            function getEngineMeta(engine) {
+                return engineMeta[engine] || engineMeta.google;
+            }
+
+            function renderAnatomy(selected) {
+                if (!selected) {
+                    els.anatomyList.innerHTML = "";
+                    return;
+                }
+
+                const items = buildAnalysisItems(selected);
+                els.anatomyList.classList.add("compact");
+                els.anatomyList.innerHTML = items.map(item => `
+                    <li>
+                        ${item.code ? `<code>${escapeHtml(item.code)}</code>` : ""}
+                        <span class="analysis-point">${escapeHtml(item.text)}</span>
+                    </li>
+                `).join("");
+            }
+
+            function renderTutorial() {
+                els.tutorialList.innerHTML = t().tutorial.map(([step, explanation], index) => `
+                    <li>
+                        <span class="step-badge">${index + 1}</span>
+                        <span class="step-copy">
+                            <strong>${escapeHtml(step.replace(/^\d+\.\s*/, ""))}</strong>
+                            <span>${escapeHtml(explanation)}</span>
+                        </span>
+                    </li>
+                `).join("");
+            }
+
+            function buildAnalysisItems(selected) {
+                return buildCompactAnalysisItems(selected);
+            }
+
+            function buildCompactAnalysisItems(selected) {
+                const scope = isValidScope(state.scope) ? state.scope : "redteamnotes.com";
+                const hasIntitle = selected.query.includes("intitle:");
+                const hasInurl = selected.query.includes("inurl:");
+                const hasIntext = selected.query.includes("intext:");
+                const hasOperators = [
+                    hasIntitle ? "intitle" : "",
+                    hasInurl ? "inurl" : "",
+                    hasIntext ? "intext" : ""
+                ].filter(Boolean).join(" / ");
+
+                if (state.lang === "zh") {
+                    const items = [
+                        {
+                            code: `site:${scope}`,
+                            text: `这段把搜索结果限制在授权域名内，是整条查询的边界控制。之所以先写它，是为了避免把同名品牌、第三方帮助中心、招聘平台或无关资产混进结果里。人工判断时要看最终打开的地址是否仍在授权范围内：如果项目只允许 app.redteamnotes.com，就不要用根域泛搜；如果允许 redteamnotes.com 及其子域，再用根域更合适。`
+                        },
+                        {
+                            code: selected.query,
+                            text: `这段是当前模板的核心匹配块，目标是寻找「${dorkTitle(selected)}」这类可能接收用户输入的入口。它不是在验证漏洞，而是在把搜索结果收窄到可能被后台人员、客服、销售、招聘、审核或运营系统查看的页面。人工判断时重点看页面是否真的有可控输入，例如文本框、描述字段、邮箱、姓名、URL、附件上传、评论、问题说明或富文本内容。`
+                        },
+                        {
+                            code: hasOperators || "匹配组合",
+                            text: `这里的匹配位置决定命中质量：intitle 更偏向页面目的，标题里出现联系、工单、申请、报告时相关性通常较高；inurl 更偏向功能路径，像 /submit、/request-demo、/support/tickets/new 这类路径往往比普通文章更值得看；intext 覆盖更宽，能抓到“上传附件”“问题描述”等表单文案，但也更容易命中文档和教程。人工分诊时不要只看关键词，要结合标题、URL、摘要和页面控件一起判断。`
+                        },
+                        {
+                            code: "A OR B OR C",
+                            text: `OR 让多个同义词、路径变体或模板文案共用一个查询，任意一个命中都能返回结果。这样写是因为真实站点命名不统一，同一个入口可能叫 contact-us、contact_us、submit request、send feedback 或 new ticket。人工判断时，OR 命中越多不代表越重要；更重要的是命中的那个词是否出现在功能路径、表单标题或可提交页面附近。`
+                        }
+                    ];
+
+                    if (state.options.reduceNoise) {
+                        items.push({
+                            code: "-inurl:blog -inurl:docs -inurl:press -inurl:privacy -inurl:terms",
+                            text: "这些排除项用于压低博客、文档、新闻稿、隐私政策和服务条款等信息页的权重。这样写是因为这些页面经常包含 contact、support、report 等词，但通常没有真正的提交入口。人工判断时如果结果太少，可以先关闭降噪再比较；如果结果很多且大多是文章，就保持开启。"
+                        });
+                    }
+
+                    if (state.options.paramBias) {
+                        items.push({
+                            code: '(inurl:"?" OR inurl:"=" OR inurl:"form")',
+                            text: "参数偏向会让查询更关注带查询参数、等号或 form 路径的页面。这样写是因为参数化页面经常意味着存在动态处理、筛选状态或表单流程。人工判断时要注意现代单页应用不一定暴露 ? 或 =，所以这个选项适合扩展分诊，不适合作为唯一判断标准。"
+                        });
+                    }
+
+                    if (state.options.freshBias) {
+                        items.push({
+                            code: "after:2024-01-01",
+                            text: "近期偏向让结果更接近当前仍在使用的页面。这样写适合快速摸清现有暴露面，而不是追溯旧入口。人工判断时要知道搜索引擎索引日期不等于页面上线日期，它只能作为优先级参考，不能替代页面状态确认。"
+                        });
+                    }
+
+                    items.push({
+                        code: state.engine,
+                        text: `搜索引擎选择会影响结果覆盖面。Google、Bing、DuckDuckGo 的索引不同，同一条查询可能暴露不同入口。人工操作时建议一次只改一个变量：先固定模板换引擎，再固定引擎换模板，这样队列备注和后续复盘会更清楚。`
+                    });
+
+                    items.push({
+                        code: "title + URL + snippet",
+                        text: "打开结果前先用标题、URL 和摘要打分：高优先级通常是 submit、request、ticket、apply、report、upload、callback、resume、review 等出现在路径或摘要里；中等优先级是帮助中心文章但链接到真实表单；低优先级是纯文章、PDF、政策页、职位详情页或没有提交动作的静态页面。"
+                    });
+
+                    return items;
+                }
+
+                if (state.lang === "fr") {
+                    return [
+                        {
+                            code: `site:${scope}`,
+                            text: `Ce bloc limite les résultats au périmètre autorisé. Il évite de mélanger des actifs tiers, des portails SaaS ou des pages de marque similaires. Lors du triage, vérifiez toujours que l'URL finale reste dans le périmètre défini.`
+                        },
+                        {
+                            code: selected.query,
+                            text: `Ce bloc cherche des surfaces de type ${dorkTitle(selected)}. Il ne valide pas une faille; il réduit les résultats vers des pages susceptibles de collecter une saisie utilisateur et d'être relues par support, vente, RH ou opérations.`
+                        },
+                        {
+                            code: hasOperators || "zones de correspondance",
+                            text: `intitle cible l'intention de la page, inurl révèle souvent une route fonctionnelle, et intext capte des indices visibles comme pièce jointe ou description. Pour juger un résultat, combinez titre, URL, extrait et présence réelle d'un formulaire.`
+                        },
+                        {
+                            code: "title + URL + snippet",
+                            text: `Avant d'ouvrir, notez les signaux forts: request, ticket, upload, callback, resume, review ou report dans l'URL ou l'extrait. Les pages statiques, politiques, PDF et articles sans action de soumission ont une priorité plus faible.`
+                        }
+                    ];
+                }
+
+                return [
+                    {
+                        code: `site:${scope}`,
+                        text: `This block restricts results to the authorized domain. It is written first because it prevents similarly named brands, third-party portals, and unrelated assets from entering discovery. During manual review, re-check the final URL after redirects and use the exact host when the assessment scope is narrow.`
+                    },
+                    {
+                        code: selected.query,
+                        text: `This is the template match block for ${dorkTitle(selected)}. It does not validate a vulnerability; it narrows public results toward pages that may collect user input and route it to staff, ticketing, CRM, hiring, review, or operations systems.`
+                    },
+                    {
+                        code: hasOperators || "match mix",
+                        text: `The match fields control confidence: intitle usually reflects page intent, inurl often exposes functional routes, and intext catches form wording such as attachments or descriptions but can be noisier. Judge results by combining title, URL, snippet, and whether the page truly accepts user-controlled input.`
+                    },
+                    {
+                        code: "title + URL + snippet",
+                        text: `Before opening every result, score it from the search page. Strong candidates mention submit, request, ticket, apply, report, upload, callback, resume, or review near the URL or snippet. Static articles, PDFs, policies, and pages without a submit action are lower priority.`
+                    }
+                ];
+            }
+
+            function makeAnalysisItem(title, type, code, points) {
+                return { title, type, code, points };
+            }
+
+            function point(label, text) {
+                return { label, text };
+            }
+
+            function buildZhAnalysisItems(selected) {
+                const labels = t().analysisLabels;
+                const scope = isValidScope(state.scope) ? state.scope : "{scope}";
+                const hasIntitle = selected.query.includes("intitle:");
+                const hasInurl = selected.query.includes("inurl:");
+                const hasIntext = selected.query.includes("intext:");
+
+                if (state.analysisTab === "signals") {
+                    return [
+                        makeAnalysisItem("强命中线索", "判断", "", [
+                            point(labels.purpose, `优先看标题或 URL 同时出现 ${dorkTitle(selected)} 语义的结果，例如 contact、support、ticket、request、apply、report、quote 等。`),
+                            point(labels.triage, "如果搜索结果摘要里出现表单字段、上传、附件、提交按钮、工单、回拨、招聘申请等词，通常比普通文章更值得打开。"),
+                            point(labels.watch, "只看搜索结果数量没有意义。真正有价值的是入口是否会把用户输入转交给内部人员或后台系统。")
+                        ]),
+                        makeAnalysisItem("中等信号", "判断", "", [
+                            point(labels.purpose, "帮助中心文章、FAQ、知识库页面本身不一定是输入点，但它们经常链接到真正的表单。"),
+                            point(labels.triage, "打开前先读 snippet：如果只是介绍政策或联系方式，优先级下降；如果有 submit、upload、request、new ticket，优先级上升。"),
+                            point(labels.watch, "搜索引擎可能返回缓存页面、旧路径或第三方镜像，进入页面后要再次确认域名仍在授权范围内。")
+                        ]),
+                        makeAnalysisItem("常见误报", "排除", "", [
+                            point(labels.purpose, "博客、文档、新闻稿、隐私政策、服务条款、纯营销落地页经常命中关键字，但通常不是可提交入口。"),
+                            point(labels.triage, "如果页面没有表单、没有用户输入、没有上传、没有评论或没有工单流，就不要在发现阶段继续投入太多时间。"),
+                            point(labels.watch, "不要因为标题里有 report、support、career 就默认有输入点；要看页面是否真的收集用户可控内容。")
+                        ]),
+                        makeAnalysisItem("证据记录", "记录", "", [
+                            point(labels.purpose, "把候选页面记录成可复盘条目，而不是只记一个搜索链接。"),
+                            point(labels.triage, "建议记录：发现模板、完整查询、候选 URL、为什么认为它是人工处理入口、是否有附件/富文本/备注字段。"),
+                            point(labels.watch, "不要在未确认授权和测试规则前提交 payload。这个工具只负责发现，不替代授权确认。")
+                        ])
+                    ];
+                }
+
+                if (state.analysisTab === "workflow") {
+                    return [
+                        makeAnalysisItem("1. 先锁定授权边界", "流程", `site:${scope}`, [
+                            point(labels.purpose, "先用 site: 把搜索限定到授权域名，避免把相似品牌、第三方平台或无关资产混进来。"),
+                            point(labels.triage, "如果项目允许子域名，输入根域；如果只允许特定主机，输入具体主机。"),
+                            point(labels.watch, "搜索结果跳转后仍要看地址栏。重定向到第三方 SaaS、招聘平台或帮助中心时，要按项目规则判断是否仍在范围内。")
+                        ]),
+                        makeAnalysisItem("2. 读模板意图", "流程", selected.query, [
+                            point(labels.purpose, `这个模板的目标是发现「${dorkTitle(selected)}」相关入口，不是直接验证漏洞。`),
+                            point(labels.triage, "先判断命中页面是不是收集用户输入：文本框、邮箱、姓名、URL、附件、富文本、评论、问题描述都属于重点。"),
+                            point(labels.watch, "查询中的英文短语是实际搜索关键词，不是漏翻。很多站点即使中文界面，也会保留英文路径或英文后台模板。")
+                        ]),
+                        makeAnalysisItem("3. 给候选结果打分", "流程", "标题 + URL + 摘要", [
+                            point(labels.purpose, "用标题、URL 和摘要做第一轮分诊，减少盲目打开页面。"),
+                            point(labels.triage, "高优先级：URL 带 submit/request/ticket/apply/report/upload；摘要提到 attachment、message、description、callback、resume。"),
+                            point(labels.watch, "低优先级：纯文章、政策页、PDF、招聘职位详情页、没有提交动作的静态介绍页。")
+                        ]),
+                        makeAnalysisItem("4. 加入队列并写备注", "流程", "队列 + 分诊备注", [
+                            point(labels.purpose, "把值得跟进的查询加入队列，备注里写清楚为什么值得看。"),
+                            point(labels.triage, "好的备注示例：发现支持工单表单，含附件字段，可能由客服后台查看。"),
+                            point(labels.watch, "备注要服务后续验证和报告，不要只写“看起来有用”。")
+                        ]),
+                        makeAnalysisItem("5. 扩展但不要发散", "流程", "搜索引擎 / 分类 / 查询修饰", [
+                            point(labels.purpose, "同一模板可以换搜索引擎，或切到相邻分类继续发现，例如 Support -> Attachment Forms -> Report Pages。"),
+                            point(labels.triage, "每次扩展只改变一个变量：换引擎、换模板或打开参数偏向。这样结果更容易比较。"),
+                            point(labels.watch, "不要无限叠加查询限制。查询越复杂，越可能错过简单但真实的入口。")
+                        ])
+                    ];
+                }
+
+                const items = [
+                    makeAnalysisItem("范围约束", "核心", `site:${scope}`, [
+                        point(labels.purpose, "要求搜索引擎只返回该域名下的索引结果。"),
+                        point(labels.why, "这是整个查询最重要的安全边界，避免把授权范围外的同名页面或第三方页面混进来。"),
+                        point(labels.triage, "如果输入 redteamnotes.com，会覆盖 www、app、help 等常见子域索引；如果项目只授权 app.redteamnotes.com，就应输入具体主机。")
+                    ]),
+                    makeAnalysisItem("模板匹配块", "核心", selected.query, [
+                        point(labels.purpose, `围绕「${dorkTitle(selected)}」这一类入口查找常见标题、路径或页面文案。`),
+                        point(labels.why, "Blind XSS 发现阶段常关注会被后台人员查看的输入点，所以模板偏向联系、反馈、工单、招聘、报告、报价等入口。"),
+                        point(labels.triage, "命中后先确认页面是否真的有用户可控输入，以及输入是否可能进入后台、邮件、CRM、工单系统或审核队列。")
+                    ]),
+                    makeAnalysisItem("OR 组合", "逻辑", "A OR B OR C", [
+                        point(labels.purpose, "让多个同义词或路径变体共用一个查询，任意一个命中即可返回结果。"),
+                        point(labels.why, "同类入口命名差异很大，例如 contact-us、contact_us、contact、send feedback 都可能指向类似表单。"),
+                        point(labels.watch, "OR 越多，结果越宽。发现初期可以宽一点；分诊时要靠摘要和页面结构过滤。")
+                    ])
+                ];
+
+                if (hasIntitle) {
+                    items.push(makeAnalysisItem("标题匹配", "匹配位置", "intitle:\"...\"", [
+                        point(labels.purpose, "只在搜索结果标题中匹配指定短语。"),
+                        point(labels.why, "页面标题通常反映页面目的，命中 Contact、Support Ticket、Apply Now 时，相关性通常比正文命中更高。"),
+                        point(labels.watch, "标题命中不代表一定有表单；也可能是帮助文章、说明页或旧页面。")
+                    ]));
+                }
+
+                if (hasInurl) {
+                    items.push(makeAnalysisItem("路径匹配", "匹配位置", "inurl:\"...\"", [
+                        point(labels.purpose, "在 URL 路径中寻找 contact、submit、request、ticket、apply 等入口词。"),
+                        point(labels.why, "很多表单页面的标题不明显，但路径会暴露功能，例如 /support/tickets/new 或 /request-demo。"),
+                        point(labels.triage, "URL 越像动作入口，优先级越高；URL 越像文章、分类、标签，优先级越低。")
+                    ]));
+                }
+
+                if (hasIntext) {
+                    items.push(makeAnalysisItem("正文匹配", "匹配位置", "intext:\"...\"", [
+                        point(labels.purpose, "在页面可见文本中匹配附件、上传、说明字段等文案。"),
+                        point(labels.why, "一些表单标题和路径很泛，但正文中的 Upload attachment、Attachments optional 会暴露可提交能力。"),
+                        point(labels.watch, "正文匹配容易命中文档和教程，所以需要结合页面是否有真实表单控件判断。")
+                    ]));
+                }
+
+                if (state.options.reduceNoise) {
+                    items.push(makeAnalysisItem("降噪排除", "过滤", "-inurl:blog -inurl:docs -inurl:press -inurl:privacy -inurl:terms", [
+                        point(labels.purpose, "排除常见信息页路径，让搜索结果更偏向可操作入口。"),
+                        point(labels.why, "这些页面经常包含 contact、support、report 等词，但通常不是可提交表单。"),
+                        point(labels.watch, "降噪可能误伤真实入口。如果结果太少，可以临时关闭这个选项再比较。")
+                    ]));
+                }
+
+                if (state.options.paramBias) {
+                    items.push(makeAnalysisItem("参数化偏向", "增强", '(inurl:"?" OR inurl:"=" OR inurl:"form")', [
+                        point(labels.purpose, "偏向带查询参数、等号或 form 路径的页面。"),
+                        point(labels.why, "参数化 URL 经常意味着页面存在状态、筛选、提交或动态处理逻辑。"),
+                        point(labels.watch, "不是所有表单都有参数；现代单页应用也可能完全没有 ? 或 =。")
+                    ]));
+                }
+
+                if (state.options.freshBias) {
+                    items.push(makeAnalysisItem("近期索引偏向", "增强", "after:2024-01-01", [
+                        point(labels.purpose, "让搜索结果更偏向近期被索引的页面。"),
+                        point(labels.why, "发现阶段通常更关心当前仍在使用的入口，而不是多年以前的旧页面。"),
+                        point(labels.watch, "搜索引擎索引日期不等于页面上线日期，只能作为分诊参考。")
+                    ]));
+                }
+
+                items.push(makeAnalysisItem("搜索引擎选择", "执行", state.engine, [
+                    point(labels.purpose, "决定点击 Open 时使用哪个搜索引擎。"),
+                    point(labels.why, "Google、Bing、DuckDuckGo 的索引覆盖不同，同一查询可能返回不同入口。"),
+                    point(labels.triage, "建议先固定模板，换引擎比较差异；不要同时改模板和引擎，否则很难复盘。")
+                ]));
+
+                items.push(makeAnalysisItem("关键词语言说明", "语义", "contact / support / ticket / request / apply", [
+                    point(labels.purpose, "查询里的英文关键词是搜索目标常见页面命名，不是界面漏翻。"),
+                    point(labels.why, "大量站点、SaaS 帮助中心、招聘系统和工单系统即使面向多语言用户，也会保留英文 URL、标题或模板文案。"),
+                    point(labels.triage, "如果目标站明显使用中文、法语或其他语言，可以复制查询后手动加入本地语言同义词。")
+                ]));
+
+                return items;
+            }
+
+            function buildEnAnalysisItems(selected) {
+                const labels = t().analysisLabels;
+                const scope = isValidScope(state.scope) ? state.scope : "{scope}";
+
+                if (state.analysisTab === "signals") {
+                    return [
+                        makeAnalysisItem("Strong result signals", "signal", "", [
+                            point(labels.purpose, "Prioritize results whose title, URL, or snippet indicates a real submission workflow."),
+                            point(labels.triage, "Look for forms, upload fields, ticket creation, request flows, callbacks, resumes, reviews, or staff-reviewed reports."),
+                            point(labels.watch, "A keyword match alone is not enough; confirm that the page accepts user-controlled input.")
+                        ]),
+                        makeAnalysisItem("Common false positives", "filter", "", [
+                            point(labels.purpose, "Blogs, docs, press pages, policies, and static marketing pages often match keywords without being intake points."),
+                            point(labels.triage, "Lower the priority if there is no form, no upload, no comment, no ticket, and no clear submit action."),
+                            point(labels.watch, "Search snippets can be stale. Re-check scope and page purpose after opening.")
+                        ]),
+                        makeAnalysisItem("Evidence to keep", "notes", "", [
+                            point(labels.purpose, "Keep enough context to make later validation reproducible."),
+                            point(labels.triage, "Record the template, full query, candidate URL, why it looks staff-reviewed, and any attachment or rich-text field."),
+                            point(labels.watch, "Discovery does not replace authorization. Do not submit payloads before rules are confirmed.")
+                        ])
+                    ];
+                }
+
+                if (state.analysisTab === "workflow") {
+                    return [
+                        makeAnalysisItem("Confirm scope", "step", `site:${scope}`, [
+                            point(labels.purpose, "Start with the exact authorized domain or host."),
+                            point(labels.triage, "Use a root domain only when subdomains are allowed; otherwise use the specific host."),
+                            point(labels.watch, "Re-check scope after redirects to help desks, career systems, or third-party portals.")
+                        ]),
+                        makeAnalysisItem("Read the template intent", "step", selected.query, [
+                            point(labels.purpose, `This template is looking for ${dorkTitle(selected)} surfaces.`),
+                            point(labels.triage, "Decide whether the result is likely to collect user input and route it to a backend, inbox, CRM, or ticket queue."),
+                            point(labels.watch, "English phrases in the query are search keywords, not untranslated UI text.")
+                        ]),
+                        makeAnalysisItem("Score candidates", "step", "title + URL + snippet", [
+                            point(labels.purpose, "Use the result title, URL, and snippet before opening everything."),
+                            point(labels.triage, "High priority: submit/request/ticket/apply/report/upload in URLs or snippets."),
+                            point(labels.watch, "Low priority: static articles, policies, PDFs, and pages without a submit action.")
+                        ])
+                    ];
+                }
+
+                return [
+                    makeAnalysisItem("Scope guard", "core", `site:${scope}`, [
+                        point(labels.purpose, "Restricts results to the authorized domain."),
+                        point(labels.why, "This is the main boundary that keeps discovery from drifting into unrelated assets."),
+                        point(labels.triage, "Use the exact host when the authorization is narrow.")
+                    ]),
+                    makeAnalysisItem("Template block", "core", selected.query, [
+                        point(labels.purpose, `Searches for ${dorkTitle(selected)} using common title, URL, or text patterns.`),
+                        point(labels.why, "Blind XSS discovery often starts with places where user input is later reviewed by staff."),
+                        point(labels.triage, "Confirm that a result has a real submission path before investing time.")
+                    ]),
+                    makeAnalysisItem("Noise filters", "filter", "-inurl:blog -inurl:docs -inurl:press -inurl:privacy -inurl:terms", [
+                        point(labels.purpose, "Reduces informational pages that commonly match the same words."),
+                        point(labels.why, "Cleaner results make triage faster."),
+                        point(labels.watch, "Disable the option if the result set becomes too small.")
+                    ])
+                ];
+            }
+
+            function buildFrAnalysisItems(selected) {
+                const labels = t().analysisLabels;
+                const scope = isValidScope(state.scope) ? state.scope : "{scope}";
+
+                if (state.analysisTab === "signals") {
+                    return [
+                        makeAnalysisItem("Signaux forts", "signal", "", [
+                            point(labels.purpose, "Prioriser les résultats dont le titre, l'URL ou l'extrait montre un vrai parcours de soumission."),
+                            point(labels.triage, "Chercher formulaires, pièces jointes, tickets, demandes, rappels, CV, avis ou signalements traités par une équipe."),
+                            point(labels.watch, "Un mot-clé seul ne suffit pas; confirmez que la page accepte une saisie utilisateur.")
+                        ]),
+                        makeAnalysisItem("Faux positifs fréquents", "filtre", "", [
+                            point(labels.purpose, "Blogs, docs, pages presse, politiques et marketing statique peuvent correspondre sans être des entrées."),
+                            point(labels.triage, "Baisser la priorité s'il n'y a ni formulaire, ni fichier, ni commentaire, ni ticket, ni action submit."),
+                            point(labels.watch, "Les extraits peuvent être obsolètes. Revérifiez le périmètre après ouverture.")
+                        ])
+                    ];
+                }
+
+                if (state.analysisTab === "workflow") {
+                    return [
+                        makeAnalysisItem("Confirmer le périmètre", "étape", `site:${scope}`, [
+                            point(labels.purpose, "Commencer par le domaine ou l'hôte explicitement autorisé."),
+                            point(labels.triage, "Utiliser le domaine racine seulement si les sous-domaines sont inclus."),
+                            point(labels.watch, "Contrôler les redirections vers help desk, ATS ou portails tiers.")
+                        ]),
+                        makeAnalysisItem("Lire l'intention du modèle", "étape", selected.query, [
+                            point(labels.purpose, `Ce modèle cherche des surfaces ${dorkTitle(selected)}.`),
+                            point(labels.triage, "Vérifier si le résultat collecte une saisie utilisateur et la route vers un backend, une boîte ou une file de tickets."),
+                            point(labels.watch, "Les termes anglais de la requête sont des mots-clés de recherche, pas une interface non traduite.")
+                        ])
+                    ];
+                }
+
+                return [
+                    makeAnalysisItem("Garde-fou de périmètre", "cœur", `site:${scope}`, [
+                        point(labels.purpose, "Limite les résultats au domaine autorisé."),
+                        point(labels.why, "C'est la contrainte principale pour éviter les actifs hors périmètre."),
+                        point(labels.triage, "Utiliser l'hôte exact si l'autorisation est étroite.")
+                    ]),
+                    makeAnalysisItem("Bloc de modèle", "cœur", selected.query, [
+                        point(labels.purpose, `Recherche ${dorkTitle(selected)} via titres, URL ou texte visible.`),
+                        point(labels.why, "La découverte bXSS vise souvent les endroits où une saisie utilisateur est revue par du personnel."),
+                        point(labels.triage, "Confirmer qu'il existe un vrai chemin de soumission avant de poursuivre.")
+                    ]),
+                    makeAnalysisItem("Filtres de bruit", "filtre", "-inurl:blog -inurl:docs -inurl:press -inurl:privacy -inurl:terms", [
+                        point(labels.purpose, "Réduit les pages informatives qui correspondent aux mêmes mots."),
+                        point(labels.why, "Des résultats plus propres accélèrent le triage."),
+                        point(labels.watch, "Désactiver l'option si le volume devient trop faible.")
+                    ])
+                ];
+            }
+
+            function renderQueue() {
+                const copy = t();
+                els.queueMetric.textContent = state.queue.length;
+                els.emptyQueue.classList.toggle("hidden", state.queue.length > 0);
+                els.queueList.innerHTML = state.queue.map(item => `
+                    <article class="queue-row" data-id="${escapeHtml(item.id)}">
+                        <div class="queue-row-top">
+                            <h3>${escapeHtml(displayItemTitle(item))}</h3>
+                            <span class="tag">${escapeHtml(item.engine)}</span>
+                        </div>
+                        <p>${escapeHtml(item.query)}</p>
+                        ${item.note ? `<p>${escapeHtml(item.note)}</p>` : ""}
+                        <div class="row-actions">
+                            <button class="primary-btn" type="button" data-action="open"><i class="fa-solid fa-arrow-up-right-from-square"></i> ${escapeHtml(copy.open)}</button>
+                            <button class="ghost-btn" type="button" data-action="copy"><i class="fa-solid fa-copy"></i> ${escapeHtml(copy.copy)}</button>
+                            <button class="ghost-btn" type="button" data-action="remove"><i class="fa-solid fa-trash"></i> ${escapeHtml(state.lang === "zh" ? "移除" : state.lang === "fr" ? "Retirer" : "Remove")}</button>
+                        </div>
+                    </article>
+                `).join("");
+
+                els.queueList.querySelectorAll(".queue-row").forEach(row => {
+                    row.querySelector('[data-action="open"]').addEventListener("click", () => openQueuedQuery(row.dataset.id));
+                    row.querySelector('[data-action="copy"]').addEventListener("click", () => copyQueuedQuery(row.dataset.id));
+                    row.querySelector('[data-action="remove"]').addEventListener("click", () => removeQueuedQuery(row.dataset.id));
+                });
+            }
+
+            function renderHistory() {
+                const copy = t();
+                els.historyMetric.textContent = state.history.length;
+                els.emptyHistory.classList.toggle("hidden", state.history.length > 0);
+                els.historyList.innerHTML = state.history.map(item => `
+                    <article class="history-row" data-id="${escapeHtml(item.id)}">
+                        <div class="history-row-top">
+                            <h3>${escapeHtml(displayItemTitle(item))}</h3>
+                            <span class="tag">${formatTime(item.time)}</span>
+                        </div>
+                        <p>${escapeHtml(item.query)}</p>
+                        ${item.note ? `<p>${escapeHtml(item.note)}</p>` : ""}
+                        <div class="row-actions">
+                            <button class="ghost-btn" type="button" data-action="copy"><i class="fa-solid fa-copy"></i> ${escapeHtml(copy.copy)}</button>
+                            <button class="ghost-btn" type="button" data-action="requeue"><i class="fa-solid fa-plus"></i> ${escapeHtml(state.lang === "zh" ? "重新入队" : state.lang === "fr" ? "Remettre en file" : "Requeue")}</button>
+                        </div>
+                    </article>
+                `).join("");
+
+                els.historyList.querySelectorAll(".history-row").forEach(row => {
+                    row.querySelector('[data-action="copy"]').addEventListener("click", () => copyHistoryQuery(row.dataset.id));
+                    row.querySelector('[data-action="requeue"]').addEventListener("click", () => requeueHistoryQuery(row.dataset.id));
+                });
+            }
+
+            function getVisibleDorks() {
+                return dorks.filter(dork => {
+                    const inCategory = state.category === "All" || dork.category === state.category;
+                    const haystack = `${dork.title} ${dorkTitle(dork)} ${dork.category} ${categoryLabel(dork.category)} ${dork.description} ${dorkDescription(dork)} ${dork.operator} ${dorkMatchLabel(dork)} ${dork.query} ${dork.intensity} ${intensityLabel(dork.intensity)}`.toLowerCase();
+                    return inCategory && (!state.search || haystack.includes(state.search));
+                });
+            }
+
+            function selectDork(id) {
+                state.selectedId = id;
+                renderDiscover();
+                renderInspector();
+            }
+
+            function ensureSelectedVisible() {
+                const visible = getVisibleDorks();
+                if (visible.length && !visible.some(dork => dork.id === state.selectedId)) {
+                    state.selectedId = visible[0].id;
+                }
+            }
+
+            function getSelectedDork() {
+                return dorks.find(dork => dork.id === state.selectedId) || dorks[0];
+            }
+
+            function buildQuery(dork) {
+                if (!dork) return "site:{scope} select a template";
+
+                const scope = isValidScope(state.scope) ? state.scope : "{scope}";
+                const operators = [];
+
+                if (state.options.reduceNoise) {
+                    operators.push("-inurl:blog", "-inurl:docs", "-inurl:press", "-inurl:privacy", "-inurl:terms");
+                }
+
+                if (state.options.paramBias) {
+                    operators.push('(inurl:"?" OR inurl:"=" OR inurl:"form")');
+                }
+
+                if (state.options.freshBias) {
+                    operators.push("after:2024-01-01");
+                }
+
+                return [`site:${scope}`, dork.query, ...operators].join(" ").replace(/\s+/g, " ").trim();
+            }
+
+            function updateScopeState(commit) {
+                const normalized = normalizeScope(els.scopeInput.value);
+                const valid = isValidScope(normalized);
+
+                if (commit && els.scopeInput.value.trim() && !valid) {
+                    showToast(t().toast.invalidScope, "error");
+                }
+
+                state.scope = valid ? normalized : "";
+                localStorage.setItem(storage.scope, state.scope);
+
+                if (commit && valid) {
+                    els.scopeInput.value = normalized;
+                    showToast(t().toast.scopeSet(normalized));
+                }
+
+                els.scopeHint.textContent = valid ? t().activeScope : t().noActiveScope;
+                renderInspector();
+                updateAuthStatus();
+            }
+
+            function updateAuthStatus() {
+                const ready = isValidScope(state.scope) && state.authorized;
+                els.authStatus.classList.toggle("ready", ready);
+                els.authStatusText.textContent = ready ? t().scopeConfirmed : t().scopeNotConfirmed;
+                updateFlowSteps();
+            }
+
+            function updateFlowSteps() {
+                const scopeReady = isValidScope(state.scope) && state.authorized;
+                const selected = Boolean(getSelectedDork());
+                const triageTouched = Boolean(els.notesInput.value.trim()) || state.queue.length > 0 || state.history.length > 0;
+
+                setFlowStepState("scope", scopeReady ? "complete" : "active");
+                setFlowStepState("templates", !scopeReady ? "locked" : selected ? "complete" : "active");
+                setFlowStepState("query", !scopeReady || !selected ? "locked" : "active");
+                setFlowStepState("parameters", !scopeReady || !selected ? "locked" : "active");
+                setFlowStepState("triage", !scopeReady || !selected ? "locked" : triageTouched ? "complete" : "active");
+                setFlowStepState("analysis", !scopeReady || !selected ? "locked" : "active");
+            }
+
+            function setFlowStepState(name, status) {
+                const node = document.querySelector(`[data-flow-step="${name}"]`);
+                if (!node) return;
+                node.classList.toggle("is-active", status === "active");
+                node.classList.toggle("is-complete", status === "complete");
+                node.classList.toggle("is-locked", status === "locked");
+            }
+
+            function updateMetrics() {
+                els.templateMetric.textContent = dorks.length;
+                els.visibleMetric.textContent = getVisibleDorks().length;
+                els.queueMetric.textContent = state.queue.length;
+                els.historyMetric.textContent = state.history.length;
+            }
+
+            function setView(view) {
+                state.view = view;
+                document.querySelectorAll("[data-view]").forEach(button => {
+                    button.classList.toggle("active", button.dataset.view === view);
+                });
+                els.discoverView.classList.remove("hidden");
+                els.queueView.classList.toggle("hidden", view !== "queue");
+                els.historyView.classList.toggle("hidden", view !== "history");
+            }
+
+            async function copyCurrentQuery() {
+                const selected = getSelectedDork();
+                const query = buildQuery(selected);
+
+                if (!isValidScope(state.scope)) {
+                    showToast(t().toast.setScopeFirst, "error");
+                    return;
+                }
+
+                await copyText(query);
+                writeHistory("copied", selected, query);
+                showToast(t().toast.queryCopied);
+            }
+
+            function queueCurrentQuery() {
+                if (!ensureReady()) return;
+                const selected = getSelectedDork();
+                const query = buildQuery(selected);
+                const duplicate = state.queue.some(item => item.query === query && item.engine === state.engine);
+
+                if (duplicate) {
+                    showToast(t().toast.duplicate, "error");
+                    return;
+                }
+
+                state.queue.unshift({
+                    id: crypto.randomUUID(),
+                    templateId: selected.id,
+                    title: dorkTitle(selected),
+                    category: selected.category,
+                    engine: state.engine,
+                    query,
+                    note: els.notesInput.value.trim(),
+                    time: new Date().toISOString()
+                });
+                state.queue = state.queue.slice(0, 50);
+                persistQueue();
+                renderQueue();
+                updateMetrics();
+                updateFlowSteps();
+                showToast(t().toast.searchQueued);
+            }
+
+            function openCurrentQuery() {
+                if (!ensureReady()) return;
+                const selected = getSelectedDork();
+                const query = buildQuery(selected);
+                openQueryUrl(query, state.engine);
+                writeHistory("opened", selected, query);
+                showToast(t().toast.searchOpened);
+            }
+
+            function openQueuedQuery(id) {
+                const item = state.queue.find(row => row.id === id);
+                if (!item) return;
+                openQueryUrl(item.query, item.engine);
+                writeHistory("opened", item, item.query, item.note, item.engine);
+                showToast(t().toast.queuedOpened);
+            }
+
+            async function copyQueuedQuery(id) {
+                const item = state.queue.find(row => row.id === id);
+                if (!item) return;
+                await copyText(item.query);
+                showToast(t().toast.queuedCopied);
+            }
+
+            function removeQueuedQuery(id) {
+                state.queue = state.queue.filter(row => row.id !== id);
+                persistQueue();
+                renderQueue();
+                updateMetrics();
+                updateFlowSteps();
+                showToast(t().toast.queueRemoved);
+            }
+
+            async function copyHistoryQuery(id) {
+                const item = state.history.find(row => row.id === id);
+                if (!item) return;
+                await copyText(item.query);
+                showToast(t().toast.historyCopied);
+            }
+
+            function requeueHistoryQuery(id) {
+                const item = state.history.find(row => row.id === id);
+                if (!item) return;
+                state.queue.unshift({
+                    id: crypto.randomUUID(),
+                    templateId: item.templateId || "",
+                    title: item.title,
+                    category: item.category || "History",
+                    engine: item.engine || state.engine,
+                    query: item.query,
+                    note: item.note || "",
+                    time: new Date().toISOString()
+                });
+                persistQueue();
+                renderQueue();
+                updateMetrics();
+                setView("queue");
+                updateFlowSteps();
+                showToast(t().toast.historyRequeued);
+            }
+
+            function clearComposer() {
+                els.notesInput.value = "";
+                state.selectedId = "contact-surfaces";
+                renderDiscover();
+                renderInspector();
+                updateFlowSteps();
+                showToast(t().toast.composerCleared);
+            }
+
+            function ensureReady() {
+                if (!isValidScope(state.scope)) {
+                    showToast(t().toast.setScopeFirst, "error");
+                    return false;
+                }
+
+                if (!state.authorized) {
+                    showToast(t().toast.confirmAuthFirst, "error");
+                    return false;
+                }
+
+                return true;
+            }
+
+            function openQueryUrl(query, engine) {
+                const url = engines[engine](query);
+                window.open(url, "_blank", "noopener,noreferrer");
+            }
+
+            function writeHistory(action, item, query, note = els.notesInput.value.trim(), engine = state.engine) {
+                const template = dorks.find(dork => dork.id === item.templateId || dork.id === item.id);
+                state.history.unshift({
+                    id: crypto.randomUUID(),
+                    templateId: template ? template.id : item.templateId || "",
+                    action,
+                    title: template ? dorkTitle(template) : item.title,
+                    category: template ? template.category : item.category,
+                    engine,
+                    query,
+                    note,
+                    time: new Date().toISOString()
+                });
+                state.history = state.history.slice(0, 40);
+                localStorage.setItem(storage.history, JSON.stringify(state.history));
+                renderHistory();
+                updateMetrics();
+                updateFlowSteps();
+            }
+
+            function persistQueue() {
+                localStorage.setItem(storage.queue, JSON.stringify(state.queue));
+            }
+
+            async function copyText(text) {
+                if (navigator.clipboard && window.isSecureContext) {
+                    await navigator.clipboard.writeText(text);
+                    return;
+                }
+
+                els.queryPreview.focus();
+                els.queryPreview.select();
+                document.execCommand("copy");
+            }
+
+            function normalizeScope(value) {
+                const rawValue = value.trim().split(/[\s,]+/)[0] || "";
+                if (!rawValue) return "";
+
+                const withoutWildcard = rawValue.replace(/^\*\./, "");
+                let hostname = withoutWildcard;
+
+                try {
+                    const url = new URL(/^https?:\/\//i.test(withoutWildcard) ? withoutWildcard : `https://${withoutWildcard}`);
+                    hostname = url.hostname;
+                } catch (error) {
+                    hostname = withoutWildcard.split("/")[0].split("?")[0].split("#")[0];
+                }
+
+                return hostname.replace(/^www\./i, "").replace(/\.$/, "").toLowerCase();
+            }
+
+            function isValidScope(scope) {
+                return /^(?!-)(?:[a-z0-9-]{1,63}\.)+[a-z]{2,63}$/i.test(scope);
+            }
+
+            function readJson(key, fallback) {
+                try {
+                    return JSON.parse(localStorage.getItem(key)) || fallback;
+                } catch (error) {
+                    return fallback;
+                }
+            }
+
+            function tagTone(intensity) {
+                if (intensity === "Low noise") return "green";
+                if (intensity === "Targeted") return "amber";
+                return "blue";
+            }
+
+            function categoryLabel(category) {
+                return t().categoriesMap[category] || category;
+            }
+
+            function intensityLabel(intensity) {
+                return t().intensityMap[intensity] || intensity;
+            }
+
+            function dorkTitle(dork) {
+                return dorkI18n[state.lang]?.[dork.id]?.title || dork.title;
+            }
+
+            function dorkDescription(dork) {
+                return dorkI18n[state.lang]?.[dork.id]?.description || dork.description;
+            }
+
+            function dorkMatchLabel(dork) {
+                if (!dork) return "";
+                const labels = [];
+                if (dork.query.includes("intitle:")) {
+                    labels.push(state.lang === "zh" ? "标题" : state.lang === "fr" ? "Titre" : "Title");
+                }
+                if (dork.query.includes("inurl:")) {
+                    labels.push(state.lang === "zh" ? "路径" : "URL");
+                }
+                if (dork.query.includes("intext:")) {
+                    labels.push(state.lang === "zh" ? "正文" : state.lang === "fr" ? "Texte" : "Text");
+                }
+                if (!labels.length) {
+                    return state.lang === "zh" ? "关键词" : state.lang === "fr" ? "Mots-clés" : "Keywords";
+                }
+                return labels.join(" + ");
+            }
+
+            function displayItemTitle(item) {
+                const template = dorks.find(dork => dork.id === item.templateId);
+                return template ? dorkTitle(template) : item.title;
+            }
+
+            function formatTime(value) {
+                const date = new Date(value);
+                return new Intl.DateTimeFormat(undefined, {
+                    month: "short",
+                    day: "2-digit",
+                    hour: "2-digit",
+                    minute: "2-digit"
+                }).format(date);
+            }
+
+            function toggleTheme() {
+                state.theme = state.theme === "day" ? "night" : "day";
+                document.documentElement.setAttribute("data-theme", state.theme === "day" ? "day" : "night");
+                localStorage.setItem(storage.theme, state.theme);
+                updateThemeIcon();
+            }
+
+            function updateThemeIcon() {
+                const icon = els.themeToggle.querySelector("i");
+                icon.className = state.theme === "day" ? "fa-solid fa-sun" : "fa-solid fa-moon";
+            }
+
+            function showToast(message, type = "success") {
+                els.toastText.textContent = message;
+                els.toast.classList.toggle("error", type === "error");
+                els.toast.querySelector("i").className = type === "error" ? "fa-solid fa-circle-exclamation" : "fa-solid fa-circle-check";
+                els.toast.classList.add("show");
+                clearTimeout(showToast.timer);
+                showToast.timer = setTimeout(() => els.toast.classList.remove("show"), 2600);
+            }
+
+            function escapeHtml(value) {
+                return String(value)
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;")
+                    .replace(/'/g, "&#039;");
+            }
+        });
+    </script>
+</body>
+</html>
