@@ -20,7 +20,7 @@ Generated queries narrow public search results. They are not proof of vulnerabil
 
 - Scoped query builder using a normalized domain or host
 - English default UI with Chinese and French language switches
-- Template library with category and keyword filtering
+- 36 reviewed discovery templates with category and keyword filtering
 - Numbered workflow panels for scope, template, query, parameters, triage, and explanation
 - Single search engine selection for Google, Bing, or DuckDuckGo
 - Detailed query explanations for scope, template matching, search engine choice, and result filters
@@ -76,6 +76,8 @@ Templates are defined in the `dorks` array inside `index.html`. Each entry inclu
 - `operator`: internal syntax tag used for search/filtering; the UI presents this as title, URL, or page-text matching
 - `description`: what the template is intended to find
 - `query`: search query fragment appended after `site:{scope}`
+
+The current library contains 36 reviewed templates covering intake, feedback, support, trust and safety, careers, marketing, sales, identity, and operations surfaces.
 
 Keep new templates specific, explainable, and easy to triage. Avoid broad terms that mostly return marketing, policy, or documentation pages.
 

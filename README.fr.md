@@ -20,7 +20,7 @@ Les requêtes générées réduisent les résultats de recherche publics. Elles 
 
 - Générateur de requêtes avec domaine ou hôte normalisé
 - Interface anglaise par défaut, avec bascule chinoise et française
-- Bibliothèque de modèles avec filtrage par catégorie et mots-clés
+- 36 modèles de découverte revus, avec filtrage par catégorie et mots-clés
 - Panneaux numérotés pour le périmètre, le modèle, la requête, les paramètres, le triage et l'explication
 - Sélection d'un seul moteur parmi Google, Bing ou DuckDuckGo
 - Explications détaillées du périmètre, des correspondances, du moteur choisi et des filtres
@@ -76,6 +76,8 @@ Les modèles sont définis dans le tableau `dorks` de `index.html`. Chaque entr�
 - `operator` : étiquette interne de recherche/filtrage ; l'interface l'affiche comme correspondance de titre, URL ou texte
 - `description` : intention du modèle
 - `query` : fragment ajouté après `site:{scope}`
+
+La bibliothèque actuelle contient 36 modèles revus couvrant les surfaces d'entrée, feedback, support, confiance/sûreté, carrières, marketing, ventes, identité et opérations.
 
 Gardez les nouveaux modèles spécifiques, explicables et faciles à trier. Évitez les termes trop larges qui retournent surtout des pages marketing, politiques ou documentaires.
 

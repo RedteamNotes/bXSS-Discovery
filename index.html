@@ -1809,22 +1809,22 @@
             const dorks = [
                 {
                     id: "contact-surfaces",
-                    title: "Contact Surface",
+                    title: "Contact Intake",
                     category: "Intake",
                     icon: "fa-solid fa-address-card",
                     intensity: "Low noise",
-                    operator: "intitle/inurl",
-                    description: "Finds public contact pages and contact form routes that often feed internal inboxes.",
+                    operator: "title-url",
+                    description: "Identifies public contact pages and form routes likely to send user-supplied fields to staff inboxes.",
                     query: '(intitle:"contact us" OR intitle:"contact" OR inurl:"contact-us" OR inurl:"contact_us" OR inurl:"contact")'
                 },
                 {
                     id: "contact-handlers",
-                    title: "Contact Handlers",
+                    title: "Legacy Contact Endpoints",
                     category: "Intake",
                     icon: "fa-solid fa-file-code",
                     intensity: "Targeted",
-                    operator: "extensions",
-                    description: "Looks for legacy contact endpoints and static contact form handlers.",
+                    operator: "legacy-endpoint",
+                    description: "Finds older contact form handlers and static endpoints that may still process submitted fields.",
                     query: '(inurl:"contact.php" OR inurl:"contactus.php" OR inurl:"contact.aspx" OR inurl:"contact.asp" OR inurl:"contact.html" OR inurl:"contact-us.html")'
                 },
                 {
@@ -1834,128 +1834,128 @@
                     icon: "fa-solid fa-comment-dots",
                     intensity: "Broad",
                     operator: "feedback",
-                    description: "Surfaces feedback pages, send-feedback routes, and related intake forms.",
-                    query: '(intitle:"feedback" OR intitle:"send feedback" OR inurl:"feedback" OR inurl:"send-feedback" OR inurl:"feedback.php")'
+                    description: "Locates feedback forms and routes used to collect user comments, suggestions, or product input.",
+                    query: '(intitle:"feedback" OR intitle:"send feedback" OR inurl:"feedback" OR inurl:"send-feedback" OR intext:"submit feedback")'
                 },
                 {
                     id: "zendesk-like",
-                    title: "Attachment Forms",
+                    title: "Support Attachment Intake",
                     category: "Support",
                     icon: "fa-solid fa-paperclip",
                     intensity: "Targeted",
-                    operator: "intext",
-                    description: "Finds support-style forms that expose optional attachment fields.",
-                    query: '(intext:"Attachments (optional)" OR intext:"Add file" OR intext:"Upload attachment")'
+                    operator: "page-text",
+                    description: "Finds support-style forms that expose file attachment controls or upload wording.",
+                    query: '(intext:"Attachments (optional)" OR intext:"Upload attachment" OR intext:"Attach file" OR intext:"Add file")'
                 },
                 {
                     id: "support-ticket",
-                    title: "Support Tickets",
+                    title: "Support Ticket Intake",
                     category: "Support",
                     icon: "fa-solid fa-ticket",
                     intensity: "Targeted",
                     operator: "ticket",
-                    description: "Finds ticket creation and support request workflows.",
-                    query: '(intitle:"support ticket" OR intitle:"create ticket" OR inurl:"ticket" OR inurl:"support-ticket" OR inurl:"new-request")'
+                    description: "Identifies ticket creation workflows where user input may enter a support queue.",
+                    query: '(intitle:"support ticket" OR intitle:"create a ticket" OR inurl:"support-ticket" OR inurl:"new-ticket" OR inurl:"tickets/new")'
                 },
                 {
                     id: "support-center",
-                    title: "Support Center",
+                    title: "Help Center Request Portals",
                     category: "Support",
                     icon: "fa-solid fa-life-ring",
                     intensity: "Broad",
-                    operator: "support",
-                    description: "Maps public support center and help desk entry points.",
-                    query: '(intitle:"support center" OR intitle:"help center" OR inurl:"support" OR inurl:"help" OR inurl:"hc")'
+                    operator: "helpdesk",
+                    description: "Finds help center and support portal pages that can lead to request submission flows.",
+                    query: '(intitle:"help center" OR intitle:"support center" OR inurl:"hc/en-us/requests" OR inurl:"support/requests" OR inurl:"help/contact")'
                 },
                 {
                     id: "submit-request",
-                    title: "Submit Request",
+                    title: "Request Submission Intake",
                     category: "Support",
                     icon: "fa-solid fa-paper-plane",
                     intensity: "Low noise",
                     operator: "request",
-                    description: "Targets submit-a-request routes and message intake pages.",
-                    query: '(intitle:"submit a request" OR intitle:"send us a message" OR inurl:"submit-a-request" OR inurl:"request-form")'
+                    description: "Targets request submission routes and message forms commonly routed to service teams.",
+                    query: '(intitle:"submit a request" OR intitle:"send us a message" OR inurl:"submit-a-request" OR inurl:"request-form" OR inurl:"requests/new")'
                 },
                 {
                     id: "submit-pages",
-                    title: "Submit Pages",
+                    title: "General Submission Intake",
                     category: "Intake",
                     icon: "fa-solid fa-upload",
                     intensity: "Broad",
                     operator: "submit",
-                    description: "Looks for generic submission pages and form endpoints.",
-                    query: '(intitle:"submit" OR intitle:"submit form" OR inurl:"submit" OR inurl:"submit-form" OR inurl:"submission")'
+                    description: "Finds generic submission pages and form endpoints that accept user-controlled content.",
+                    query: '(intitle:"submit form" OR intitle:"submission form" OR inurl:"submit-form" OR inurl:"submission" OR inurl:"submit")'
                 },
                 {
                     id: "report-pages",
-                    title: "Report Pages",
+                    title: "Incident Report Intake",
                     category: "Trust",
                     icon: "fa-solid fa-flag",
                     intensity: "Targeted",
                     operator: "report",
-                    description: "Finds report forms that can route to moderation, safety, or operations teams.",
-                    query: '(intitle:"submit a report" OR intitle:"report an issue" OR inurl:"report" OR inurl:"submit-report")'
+                    description: "Finds issue and incident reporting forms routed to moderation, safety, or operations teams.",
+                    query: '(intitle:"report an issue" OR intitle:"submit a report" OR inurl:"report-issue" OR inurl:"submit-report" OR inurl:"report/problem")'
                 },
                 {
                     id: "abuse-report",
-                    title: "Report Abuse",
+                    title: "Abuse Report Intake",
                     category: "Trust",
                     icon: "fa-solid fa-shield",
                     intensity: "Targeted",
                     operator: "abuse",
-                    description: "Surfaces abuse-reporting pages and trust-and-safety intake routes.",
-                    query: '(intitle:"report abuse" OR intitle:"abuse report" OR inurl:"abuse" OR inurl:"report-abuse")'
+                    description: "Identifies abuse-reporting routes used by trust, safety, or moderation teams.",
+                    query: '(intitle:"report abuse" OR intitle:"abuse report" OR inurl:"report-abuse" OR inurl:"abuse-report" OR inurl:"trust-and-safety/report")'
                 },
                 {
                     id: "bug-report",
-                    title: "Bug Report",
+                    title: "Bug Report Intake",
                     category: "Trust",
                     icon: "fa-solid fa-bug",
                     intensity: "Targeted",
                     operator: "bug",
-                    description: "Finds public bug report forms and product issue intake.",
-                    query: '(intitle:"bug report" OR intitle:"report a bug" OR inurl:"bug-report" OR inurl:"report-bug" OR inurl:"bug")'
+                    description: "Finds public bug reporting forms and product issue intake workflows.",
+                    query: '(intitle:"bug report" OR intitle:"report a bug" OR inurl:"bug-report" OR inurl:"report-bug" OR inurl:"issues/new")'
                 },
                 {
                     id: "job-application",
-                    title: "Job Application",
+                    title: "Job Application Intake",
                     category: "Careers",
                     icon: "fa-solid fa-briefcase",
                     intensity: "Broad",
                     operator: "careers",
-                    description: "Maps job application and applicant intake pages.",
-                    query: '(intitle:"job application" OR intitle:"apply now" OR intitle:"careers" OR inurl:"careers" OR inurl:"jobs" OR inurl:"apply")'
+                    description: "Locates career application workflows where candidate data is submitted for review.",
+                    query: '(intitle:"job application" OR intitle:"apply now" OR inurl:"careers/apply" OR inurl:"jobs/apply" OR inurl:"job-application")'
                 },
                 {
                     id: "resume-upload",
-                    title: "Resume Upload",
+                    title: "Resume Upload Intake",
                     category: "Careers",
                     icon: "fa-solid fa-file-arrow-up",
                     intensity: "Targeted",
                     operator: "upload",
-                    description: "Finds hiring workflows that accept resumes, CVs, or uploaded documents.",
-                    query: '(intext:"Upload resume" OR intext:"Upload CV" OR intext:"Attach resume" OR intitle:"submit resume")'
+                    description: "Finds hiring workflows that accept resumes, CVs, or candidate document uploads.",
+                    query: '(intext:"Upload resume" OR intext:"Upload CV" OR intext:"Attach resume" OR intitle:"submit resume" OR intext:"Attach CV")'
                 },
                 {
                     id: "newsletter",
-                    title: "Newsletter Signup",
+                    title: "Newsletter Subscription",
                     category: "Marketing",
                     icon: "fa-solid fa-envelope",
                     intensity: "Broad",
                     operator: "subscribe",
-                    description: "Finds subscription forms and marketing signup flows.",
+                    description: "Finds newsletter and email subscription forms that collect visitor-provided fields.",
                     query: '(intitle:"newsletter" OR intitle:"subscribe" OR inurl:"newsletter" OR inurl:"subscribe" OR intext:"Subscribe to our newsletter")'
                 },
                 {
                     id: "testimonial",
-                    title: "Testimonial Submit",
+                    title: "Testimonial Submission",
                     category: "Marketing",
                     icon: "fa-solid fa-quote-right",
                     intensity: "Targeted",
                     operator: "testimonial",
-                    description: "Surfaces testimonial submission forms and customer story intake.",
-                    query: '(intitle:"submit testimonial" OR intitle:"testimonial" OR inurl:"testimonial" OR inurl:"customer-story")'
+                    description: "Locates testimonial and customer story submission workflows reviewed by marketing teams.",
+                    query: '(intitle:"submit testimonial" OR intitle:"testimonial" OR inurl:"testimonial" OR inurl:"customer-story" OR intext:"submit your story")'
                 },
                 {
                     id: "review",
@@ -1964,286 +1964,502 @@
                     icon: "fa-solid fa-star",
                     intensity: "Broad",
                     operator: "review",
-                    description: "Finds product, service, or location review submission pages.",
-                    query: '(intitle:"write a review" OR intitle:"submit review" OR inurl:"review" OR inurl:"rating")'
+                    description: "Finds review and rating submission pages for products, services, or locations.",
+                    query: '(intitle:"write a review" OR intitle:"submit review" OR inurl:"submit-review" OR inurl:"write-review" OR inurl:"rating")'
                 },
                 {
                     id: "ask-question",
-                    title: "Ask Question",
+                    title: "Question Intake",
                     category: "Intake",
                     icon: "fa-solid fa-circle-question",
                     intensity: "Broad",
                     operator: "question",
-                    description: "Finds question forms, ask-us pages, and Q&A intake routes.",
-                    query: '(intitle:"ask a question" OR intitle:"question" OR inurl:"ask" OR inurl:"question" OR inurl:"questions")'
+                    description: "Finds question forms, ask-us pages, and inquiry routes that capture visitor questions.",
+                    query: '(intitle:"ask a question" OR intitle:"submit a question" OR inurl:"ask-a-question" OR inurl:"question-form" OR inurl:"ask-us")'
                 },
                 {
                     id: "callback",
-                    title: "Request Callback",
+                    title: "Callback Request Intake",
                     category: "Sales",
                     icon: "fa-solid fa-phone",
                     intensity: "Targeted",
                     operator: "callback",
-                    description: "Finds callback request forms that are commonly reviewed by sales or support staff.",
+                    description: "Finds callback request forms commonly reviewed by sales or support staff.",
                     query: '(intitle:"request a callback" OR intitle:"callback" OR inurl:"callback" OR inurl:"request-call")'
                 },
                 {
                     id: "quote-request",
-                    title: "Quote Request",
+                    title: "Quote Request Intake",
                     category: "Sales",
                     icon: "fa-solid fa-calculator",
                     intensity: "Targeted",
                     operator: "quote",
-                    description: "Surfaces quote, pricing, and estimate request workflows.",
-                    query: '(intitle:"quote request" OR intitle:"get a quote" OR inurl:"quote" OR inurl:"request-quote" OR inurl:"estimate")'
+                    description: "Locates quote, pricing, and estimate request workflows handled by sales teams.",
+                    query: '(intitle:"quote request" OR intitle:"get a quote" OR inurl:"request-quote" OR inurl:"get-quote" OR inurl:"estimate")'
                 },
                 {
                     id: "demo-request",
-                    title: "Demo Request",
+                    title: "Demo Request Intake",
                     category: "Sales",
                     icon: "fa-solid fa-display",
                     intensity: "Low noise",
                     operator: "demo",
-                    description: "Finds product demo request pages and sales-assisted forms.",
+                    description: "Finds product demo request pages and sales-assisted lead forms.",
                     query: '(intitle:"request a demo" OR intitle:"book a demo" OR inurl:"demo" OR inurl:"request-demo" OR inurl:"book-demo")'
                 },
                 {
                     id: "registration",
-                    title: "Registration",
+                    title: "Account Registration",
                     category: "Identity",
                     icon: "fa-solid fa-user-plus",
                     intensity: "Broad",
                     operator: "signup",
-                    description: "Maps registration, sign-up, and account creation pages.",
-                    query: '(intitle:"register" OR intitle:"sign up" OR intitle:"signup" OR inurl:"register" OR inurl:"signup" OR inurl:"sign-up")'
+                    description: "Identifies registration and account creation pages that accept new user profile data.",
+                    query: '(intitle:"create account" OR intitle:"register" OR intitle:"sign up" OR inurl:"register" OR inurl:"signup" OR inurl:"sign-up")'
                 },
                 {
                     id: "partner",
-                    title: "Partner Application",
+                    title: "Partner Application Intake",
                     category: "Sales",
                     icon: "fa-solid fa-handshake",
                     intensity: "Targeted",
                     operator: "partner",
-                    description: "Finds partner, reseller, and channel application forms.",
+                    description: "Finds partner, reseller, and channel application workflows reviewed by business teams.",
                     query: '(intitle:"partner application" OR intitle:"become a partner" OR inurl:"partner-application" OR inurl:"become-a-partner" OR inurl:"reseller")'
                 },
                 {
                     id: "vendor",
-                    title: "Vendor Onboarding",
+                    title: "Vendor Registration Intake",
                     category: "Operations",
                     icon: "fa-solid fa-truck-field",
                     intensity: "Targeted",
                     operator: "vendor",
-                    description: "Finds vendor, supplier, and procurement intake workflows.",
-                    query: '(intitle:"vendor application" OR intitle:"supplier registration" OR inurl:"vendor" OR inurl:"supplier" OR inurl:"procurement")'
+                    description: "Locates vendor and supplier registration workflows handled by procurement or operations teams.",
+                    query: '(intitle:"vendor registration" OR intitle:"supplier registration" OR inurl:"vendor-registration" OR inurl:"supplier-registration" OR inurl:"vendor-application")'
                 },
                 {
                     id: "complaint",
-                    title: "Complaint Intake",
+                    title: "Complaint and Escalation Intake",
                     category: "Operations",
                     icon: "fa-solid fa-inbox",
                     intensity: "Targeted",
                     operator: "complaint",
-                    description: "Surfaces complaint forms and customer escalation intake.",
-                    query: '(intitle:"submit complaint" OR intitle:"file a complaint" OR inurl:"complaint" OR inurl:"grievance")'
+                    description: "Finds complaint, grievance, and escalation forms that route to support or operations review.",
+                    query: '(intitle:"submit complaint" OR intitle:"file a complaint" OR inurl:"complaint" OR inurl:"grievance" OR inurl:"escalation")'
+                },
+                {
+                    id: "survey-questionnaire",
+                    title: "Survey and Questionnaire Intake",
+                    category: "Feedback",
+                    icon: "fa-solid fa-square-poll-vertical",
+                    intensity: "Broad",
+                    operator: "survey",
+                    description: "Finds survey and questionnaire pages that collect structured feedback or research responses.",
+                    query: '(intitle:"survey" OR intitle:"questionnaire" OR inurl:"survey" OR inurl:"questionnaire" OR intext:"submit survey")'
+                },
+                {
+                    id: "case-escalation",
+                    title: "Support Case Escalation",
+                    category: "Support",
+                    icon: "fa-solid fa-folder-open",
+                    intensity: "Targeted",
+                    operator: "case",
+                    description: "Identifies open-case and escalation workflows likely to route input to support specialists.",
+                    query: '(intitle:"open a case" OR intitle:"case escalation" OR inurl:"open-case" OR inurl:"support-case" OR inurl:"escalation")'
+                },
+                {
+                    id: "security-disclosure",
+                    title: "Security Disclosure Intake",
+                    category: "Trust",
+                    icon: "fa-solid fa-shield-halved",
+                    intensity: "Targeted",
+                    operator: "security",
+                    description: "Locates vulnerability reporting and responsible disclosure intake routes for security teams.",
+                    query: '(intitle:"report a vulnerability" OR intitle:"responsible disclosure" OR inurl:"security-report" OR inurl:"vulnerability-disclosure" OR intext:"security vulnerability")'
+                },
+                {
+                    id: "privacy-request",
+                    title: "Privacy Request Intake",
+                    category: "Trust",
+                    icon: "fa-solid fa-user-lock",
+                    intensity: "Targeted",
+                    operator: "privacy",
+                    description: "Finds privacy, data access, and data subject request forms reviewed by privacy teams.",
+                    query: '(intitle:"privacy request" OR intitle:"data request" OR inurl:"privacy-request" OR inurl:"data-request" OR inurl:"dsar")'
+                },
+                {
+                    id: "copyright-report",
+                    title: "Copyright Report Intake",
+                    category: "Trust",
+                    icon: "fa-solid fa-copyright",
+                    intensity: "Targeted",
+                    operator: "copyright",
+                    description: "Identifies copyright, DMCA, and intellectual property complaint submission forms.",
+                    query: '(intitle:"copyright complaint" OR intitle:"dmca" OR inurl:"dmca" OR inurl:"copyright-report" OR inurl:"copyright-complaint")'
+                },
+                {
+                    id: "talent-community",
+                    title: "Talent Community Intake",
+                    category: "Careers",
+                    icon: "fa-solid fa-users",
+                    intensity: "Broad",
+                    operator: "talent",
+                    description: "Finds talent community and candidate interest forms that collect recruiting data.",
+                    query: '(intitle:"talent community" OR intitle:"join our talent network" OR inurl:"talent-community" OR inurl:"talent-network" OR intext:"Join our talent community")'
+                },
+                {
+                    id: "event-registration",
+                    title: "Event Registration Intake",
+                    category: "Marketing",
+                    icon: "fa-solid fa-calendar-days",
+                    intensity: "Broad",
+                    operator: "event",
+                    description: "Locates event registration forms that collect attendee and follow-up information.",
+                    query: '(intitle:"event registration" OR intitle:"register for event" OR inurl:"event-registration" OR inurl:"events/register" OR intext:"Register for this event")'
+                },
+                {
+                    id: "contact-sales",
+                    title: "Contact Sales Intake",
+                    category: "Sales",
+                    icon: "fa-solid fa-handshake-angle",
+                    intensity: "Low noise",
+                    operator: "sales",
+                    description: "Finds contact-sales and talk-to-sales forms that route lead details to sales teams.",
+                    query: '(intitle:"contact sales" OR intitle:"talk to sales" OR inurl:"contact-sales" OR inurl:"talk-to-sales" OR inurl:"sales/contact")'
+                },
+                {
+                    id: "trial-signup",
+                    title: "Trial Signup Intake",
+                    category: "Identity",
+                    icon: "fa-solid fa-flask",
+                    intensity: "Broad",
+                    operator: "trial",
+                    description: "Identifies free-trial and trial signup flows that collect account and organization details.",
+                    query: '(intitle:"free trial" OR intitle:"start trial" OR inurl:"free-trial" OR inurl:"start-trial" OR inurl:"trial-signup")'
+                },
+                {
+                    id: "beta-waitlist",
+                    title: "Beta and Waitlist Intake",
+                    category: "Identity",
+                    icon: "fa-solid fa-hourglass-start",
+                    intensity: "Broad",
+                    operator: "waitlist",
+                    description: "Finds beta signup, early access, and waitlist forms reviewed before account access.",
+                    query: '(intitle:"beta signup" OR intitle:"early access" OR inurl:"beta" OR inurl:"early-access" OR inurl:"waitlist")'
+                },
+                {
+                    id: "procurement-rfp",
+                    title: "Procurement and RFP Intake",
+                    category: "Operations",
+                    icon: "fa-solid fa-file-contract",
+                    intensity: "Targeted",
+                    operator: "procurement",
+                    description: "Locates procurement, RFP, and proposal submission workflows used by operations teams.",
+                    query: '(intitle:"procurement" OR intitle:"request for proposal" OR inurl:"procurement" OR inurl:"rfp" OR inurl:"request-for-proposal")'
+                },
+                {
+                    id: "returns-warranty",
+                    title: "Returns and Warranty Intake",
+                    category: "Operations",
+                    icon: "fa-solid fa-rotate-left",
+                    intensity: "Targeted",
+                    operator: "returns",
+                    description: "Finds return, warranty, and RMA request forms reviewed by customer operations teams.",
+                    query: '(intitle:"return request" OR intitle:"warranty claim" OR inurl:"return-request" OR inurl:"warranty" OR inurl:"rma")'
                 }
             ];
 
             const dorkI18n = {
                 zh: {
                     "contact-surfaces": {
-                        title: "联系入口",
-                        description: "定位公开的联系页面和联系表单路由，这类入口通常会进入客服、销售或运营人员的后台收件箱。"
+                        title: "联系表单入口",
+                        description: "识别公开联系页面和表单路由，这类入口通常会把用户提交字段发送到内部人员邮箱。"
                     },
                     "contact-handlers": {
-                        title: "联系表单处理器",
-                        description: "查找 contact.php、contact.aspx 等旧式联系表单处理端点，适合发现历史遗留入口。"
+                        title: "旧式联系端点",
+                        description: "查找仍可能处理提交字段的旧式联系表单处理器和静态端点。"
                     },
                     feedback: {
-                        title: "反馈入口",
-                        description: "发现反馈页面、send-feedback 路由和其他用户意见提交入口。"
+                        title: "反馈收集入口",
+                        description: "定位用于收集用户评论、建议或产品反馈的反馈表单和路由。"
                     },
                     "zendesk-like": {
-                        title: "附件型表单",
-                        description: "查找带有可选附件、上传文件或添加文件文案的支持类表单。"
+                        title: "支持附件入口",
+                        description: "查找出现附件控件、文件上传或添加文件文案的支持类表单。"
                     },
                     "support-ticket": {
-                        title: "支持工单",
-                        description: "定位创建工单、提交支持请求或新建请求的页面。"
+                        title: "支持工单入口",
+                        description: "识别工单创建流程，这些流程可能把用户输入送入支持队列。"
                     },
                     "support-center": {
-                        title: "帮助中心",
-                        description: "梳理公开帮助中心、支持中心和客服入口。"
+                        title: "帮助中心请求入口",
+                        description: "查找可能通向请求提交流程的帮助中心、支持门户和客服入口。"
                     },
                     "submit-request": {
-                        title: "提交请求",
-                        description: "定位 submit-a-request、send us a message 等请求提交流程。"
+                        title: "请求提交入口",
+                        description: "定位提交请求和消息表单，这类入口通常会路由到服务团队。"
                     },
                     "submit-pages": {
-                        title: "通用提交页",
-                        description: "查找泛化的 submit、submission、submit-form 页面和表单端点。"
+                        title: "通用提交入口",
+                        description: "查找接受用户可控内容的通用提交页面和表单端点。"
                     },
                     "report-pages": {
-                        title: "报告提交页",
-                        description: "发现可能进入审核、客服、安全或运营团队处理队列的报告表单。"
+                        title: "事件报告入口",
+                        description: "发现可能路由到审核、安全、风控或运营团队的问题与事件报告表单。"
                     },
                     "abuse-report": {
                         title: "滥用举报",
-                        description: "定位滥用举报、信任与安全团队常见的报告入口。"
+                        description: "识别信任、安全或审核团队常用的滥用举报提交入口。"
                     },
                     "bug-report": {
-                        title: "缺陷报告",
-                        description: "查找公开 bug report、report bug 或产品问题提交页面。"
+                        title: "缺陷报告入口",
+                        description: "查找公开缺陷报告表单和产品问题提交流程。"
                     },
                     "job-application": {
-                        title: "职位申请",
-                        description: "发现招聘、职位申请、apply now 等候选人提交入口。"
+                        title: "职位申请入口",
+                        description: "定位候选人数据会被提交并进入招聘评审流程的职位申请入口。"
                     },
                     "resume-upload": {
-                        title: "简历上传",
-                        description: "查找接受简历、CV 或附件上传的招聘流程。"
+                        title: "简历上传入口",
+                        description: "查找接受简历、CV 或候选人文档上传的招聘流程。"
                     },
                     newsletter: {
-                        title: "邮件订阅",
-                        description: "定位 newsletter、subscribe 等市场订阅表单和邮件注册入口。"
+                        title: "邮件订阅入口",
+                        description: "查找收集访客字段的 newsletter、subscribe 等邮件订阅表单。"
                     },
                     testimonial: {
                         title: "客户证言提交",
-                        description: "发现 testimonial、customer story 等客户故事或评价提交入口。"
+                        description: "定位由市场团队审核的 testimonial、customer story 等客户故事提交流程。"
                     },
                     review: {
                         title: "评论提交",
-                        description: "查找 write a review、rating、review 等产品或服务评论提交页面。"
+                        description: "查找产品、服务或地点相关的评论与评分提交页面。"
                     },
                     "ask-question": {
                         title: "提问入口",
-                        description: "定位 ask a question、question、ask 等问答或咨询表单。"
+                        description: "查找会收集访客问题的提问表单、ask-us 页面和咨询路由。"
                     },
                     callback: {
-                        title: "回拨请求",
-                        description: "发现 request a callback、request-call 等销售或客服回拨表单。"
+                        title: "回拨请求入口",
+                        description: "查找通常由销售或支持人员查看的回拨请求表单。"
                     },
                     "quote-request": {
-                        title: "报价请求",
-                        description: "定位 get a quote、request quote、estimate 等价格或方案询价流程。"
+                        title: "报价请求入口",
+                        description: "定位由销售团队处理的报价、价格和估算请求流程。"
                     },
                     "demo-request": {
-                        title: "演示预约",
-                        description: "查找 request a demo、book demo 等销售跟进型产品演示入口。"
+                        title: "演示请求入口",
+                        description: "查找产品演示请求页面和销售跟进型线索表单。"
                     },
                     registration: {
                         title: "注册入口",
-                        description: "梳理 register、sign up、signup 等账号创建页面。"
+                        description: "识别接受新用户资料数据的注册、sign up 和账号创建页面。"
                     },
                     partner: {
-                        title: "合作伙伴申请",
-                        description: "发现 partner application、reseller、become a partner 等渠道合作申请表单。"
+                        title: "合作伙伴申请入口",
+                        description: "查找由商务团队审核的合作伙伴、经销商和渠道申请流程。"
                     },
                     vendor: {
-                        title: "供应商入驻",
-                        description: "查找 vendor、supplier、procurement 等供应商或采购流程入口。"
+                        title: "供应商注册入口",
+                        description: "定位由采购或运营团队处理的供应商、供货商注册流程。"
                     },
                     complaint: {
-                        title: "投诉入口",
-                        description: "定位 complaint、grievance 等客户投诉或升级处理表单。"
+                        title: "投诉与升级入口",
+                        description: "查找会进入支持或运营评审的投诉、申诉和升级处理表单。"
+                    },
+                    "survey-questionnaire": {
+                        title: "问卷调查入口",
+                        description: "查找收集结构化反馈、研究回复或调查答案的 survey 和 questionnaire 页面。"
+                    },
+                    "case-escalation": {
+                        title: "支持案例升级入口",
+                        description: "识别 open-case 和 escalation 流程，这些入口通常会路由到支持专员。"
+                    },
+                    "security-disclosure": {
+                        title: "安全披露入口",
+                        description: "定位安全团队使用的漏洞报告、负责任披露和安全问题提交入口。"
+                    },
+                    "privacy-request": {
+                        title: "隐私请求入口",
+                        description: "查找由隐私团队审核的数据访问、数据主体请求和隐私请求表单。"
+                    },
+                    "copyright-report": {
+                        title: "版权举报入口",
+                        description: "识别版权、DMCA 和知识产权投诉提交表单。"
+                    },
+                    "talent-community": {
+                        title: "人才社区入口",
+                        description: "查找收集候选人兴趣和招聘资料的人才社区或人才网络表单。"
+                    },
+                    "event-registration": {
+                        title: "活动注册入口",
+                        description: "定位收集参会者信息和后续跟进字段的活动报名表单。"
+                    },
+                    "contact-sales": {
+                        title: "联系销售入口",
+                        description: "查找会把线索详情路由到销售团队的 contact sales 或 talk to sales 表单。"
+                    },
+                    "trial-signup": {
+                        title: "试用注册入口",
+                        description: "识别收集账号和组织信息的 free trial、start trial 和 trial signup 流程。"
+                    },
+                    "beta-waitlist": {
+                        title: "测试版与等待名单入口",
+                        description: "查找 beta signup、early access 和 waitlist 表单，这类入口通常在开放访问前被审核。"
+                    },
+                    "procurement-rfp": {
+                        title: "采购与 RFP 入口",
+                        description: "定位运营或采购团队使用的 procurement、RFP 和 proposal 提交流程。"
+                    },
+                    "returns-warranty": {
+                        title: "退货与质保入口",
+                        description: "查找由客户运营团队审核的 return、warranty 和 RMA 请求表单。"
                     }
                 },
                 fr: {
                     "contact-surfaces": {
-                        title: "Surface de contact",
-                        description: "Repère les pages de contact publiques et les formulaires qui alimentent souvent des boîtes internes."
+                        title: "Entrée de contact",
+                        description: "Identifie les pages et routes de contact susceptibles d'envoyer des champs utilisateur à des boîtes internes."
                     },
                     "contact-handlers": {
-                        title: "Gestionnaires de contact",
-                        description: "Recherche les anciens points de traitement de formulaires, comme contact.php ou contact.aspx."
+                        title: "Points de contact hérités",
+                        description: "Recherche les anciens gestionnaires de formulaires et points statiques pouvant encore traiter des champs soumis."
                     },
                     feedback: {
                         title: "Entrée de feedback",
-                        description: "Repère les pages de retour utilisateur, les routes send-feedback et les formulaires associés."
+                        description: "Localise les formulaires et routes utilisés pour collecter commentaires, suggestions ou retours produit."
                     },
                     "zendesk-like": {
-                        title: "Formulaires avec pièces jointes",
-                        description: "Recherche les formulaires de support qui exposent des champs de fichier ou de pièce jointe."
+                        title: "Entrée support avec pièces jointes",
+                        description: "Recherche les formulaires de support exposant des contrôles de fichiers, pièces jointes ou téléversement."
                     },
                     "support-ticket": {
-                        title: "Tickets de support",
-                        description: "Repère les parcours de création de ticket et de demande au support."
+                        title: "Entrée ticket support",
+                        description: "Identifie les parcours de création de ticket où la saisie utilisateur peut rejoindre une file support."
                     },
                     "support-center": {
-                        title: "Centre d'aide",
-                        description: "Cartographie les centres d'aide, portails de support et entrées de service client."
+                        title: "Portails de demande d'aide",
+                        description: "Repère les centres d'aide et portails support pouvant mener à un flux de soumission de demande."
                     },
                     "submit-request": {
-                        title: "Soumettre une demande",
-                        description: "Cible les pages submit-a-request et les formulaires de message entrant."
+                        title: "Entrée de demande",
+                        description: "Cible les routes de soumission de demande et formulaires de message souvent envoyés aux équipes service."
                     },
                     "submit-pages": {
-                        title: "Pages de soumission",
-                        description: "Recherche les pages génériques de soumission et les points d'entrée de formulaire."
+                        title: "Entrée de soumission générale",
+                        description: "Recherche les pages de soumission génériques et points de formulaire acceptant du contenu utilisateur."
                     },
                     "report-pages": {
-                        title: "Pages de signalement",
-                        description: "Repère les formulaires de signalement pouvant être traités par support, sécurité ou opérations."
+                        title: "Entrée de signalement d'incident",
+                        description: "Repère les formulaires de problème ou incident routés vers modération, sûreté ou opérations."
                     },
                     "abuse-report": {
                         title: "Signalement d'abus",
-                        description: "Repère les entrées de signalement d'abus et de confiance/sécurité."
+                        description: "Identifie les routes de signalement d'abus utilisées par les équipes confiance, sûreté ou modération."
                     },
                     "bug-report": {
-                        title: "Rapport de bug",
-                        description: "Recherche les formulaires publics de rapport de bug ou de problème produit."
+                        title: "Entrée de rapport de bug",
+                        description: "Recherche les formulaires publics de rapport de bug et de problème produit."
                     },
                     "job-application": {
-                        title: "Candidature",
-                        description: "Cartographie les pages de carrière, de candidature et d'envoi de profil."
+                        title: "Entrée de candidature",
+                        description: "Localise les parcours de candidature où les données candidat sont soumises pour revue."
                     },
                     "resume-upload": {
-                        title: "Envoi de CV",
-                        description: "Repère les parcours RH acceptant CV, fichiers ou pièces jointes."
+                        title: "Entrée d'envoi de CV",
+                        description: "Repère les parcours RH acceptant CV, documents candidat ou téléversements."
                     },
                     newsletter: {
-                        title: "Inscription newsletter",
-                        description: "Repère les formulaires d'abonnement et de capture marketing."
+                        title: "Abonnement newsletter",
+                        description: "Repère les formulaires newsletter et d'abonnement collectant des champs visiteur."
                     },
                     testimonial: {
-                        title: "Témoignage client",
-                        description: "Recherche les formulaires de témoignage ou de récit client."
+                        title: "Soumission de témoignage",
+                        description: "Localise les parcours de témoignage et récit client relus par les équipes marketing."
                     },
                     review: {
                         title: "Soumission d'avis",
-                        description: "Repère les pages d'avis, de note ou d'évaluation."
+                        description: "Repère les pages de soumission d'avis et de notation pour produits, services ou lieux."
                     },
                     "ask-question": {
-                        title: "Poser une question",
-                        description: "Recherche les formulaires de question, de contact conseil ou de Q/R."
+                        title: "Entrée de question",
+                        description: "Recherche les formulaires de question, pages ask-us et routes de conseil collectant des questions."
                     },
                     callback: {
-                        title: "Demande de rappel",
-                        description: "Repère les formulaires de rappel souvent vus par les équipes vente ou support."
+                        title: "Entrée de rappel",
+                        description: "Repère les formulaires de rappel souvent consultés par les équipes vente ou support."
                     },
                     "quote-request": {
-                        title: "Demande de devis",
-                        description: "Repère les parcours de devis, estimation ou demande de prix."
+                        title: "Entrée de demande de devis",
+                        description: "Localise les parcours de devis, prix et estimation traités par les équipes vente."
                     },
                     "demo-request": {
-                        title: "Demande de démo",
-                        description: "Recherche les formulaires de démonstration produit et de suivi commercial."
+                        title: "Entrée de demande de démo",
+                        description: "Recherche les pages de demande de démo produit et formulaires de suivi commercial."
                     },
                     registration: {
                         title: "Inscription",
-                        description: "Cartographie les pages de création de compte, register et sign up."
+                        description: "Identifie les pages de création de compte et d'inscription acceptant des données de profil."
                     },
                     partner: {
-                        title: "Demande partenaire",
-                        description: "Repère les formulaires partenaire, revendeur ou canal commercial."
+                        title: "Entrée de demande partenaire",
+                        description: "Recherche les parcours partenaire, revendeur et canal commercial relus par les équipes business."
                     },
                     vendor: {
-                        title: "Onboarding fournisseur",
-                        description: "Recherche les entrées fournisseur, achat ou procurement."
+                        title: "Entrée d'inscription fournisseur",
+                        description: "Localise les parcours fournisseur et supplier traités par achats ou opérations."
                     },
                     complaint: {
-                        title: "Réclamation",
-                        description: "Repère les formulaires de plainte, réclamation ou escalade client."
+                        title: "Entrée réclamation et escalade",
+                        description: "Recherche les formulaires de plainte, grief et escalade routés vers support ou opérations."
+                    },
+                    "survey-questionnaire": {
+                        title: "Entrée enquête et questionnaire",
+                        description: "Recherche les pages survey et questionnaire collectant retours structurés ou réponses d'étude."
+                    },
+                    "case-escalation": {
+                        title: "Entrée d'escalade support",
+                        description: "Identifie les flux open-case et escalation susceptibles d'être routés vers des spécialistes support."
+                    },
+                    "security-disclosure": {
+                        title: "Entrée de divulgation sécurité",
+                        description: "Localise les routes de rapport de vulnérabilité, responsible disclosure et signalement sécurité."
+                    },
+                    "privacy-request": {
+                        title: "Entrée de demande confidentialité",
+                        description: "Recherche les formulaires de demande privacy, data access ou DSAR relus par les équipes confidentialité."
+                    },
+                    "copyright-report": {
+                        title: "Entrée de signalement copyright",
+                        description: "Identifie les formulaires de plainte copyright, DMCA et propriété intellectuelle."
+                    },
+                    "talent-community": {
+                        title: "Entrée communauté talent",
+                        description: "Recherche les formulaires talent community ou talent network collectant l'intérêt candidat."
+                    },
+                    "event-registration": {
+                        title: "Entrée d'inscription événement",
+                        description: "Localise les formulaires d'inscription événement collectant informations participant et suivi."
+                    },
+                    "contact-sales": {
+                        title: "Entrée contact vente",
+                        description: "Recherche les formulaires contact sales ou talk to sales routant les détails de prospect aux ventes."
+                    },
+                    "trial-signup": {
+                        title: "Entrée d'essai gratuit",
+                        description: "Identifie les flux free trial et start trial collectant données de compte et d'organisation."
+                    },
+                    "beta-waitlist": {
+                        title: "Entrée bêta et liste d'attente",
+                        description: "Recherche les formulaires beta signup, early access et waitlist revus avant ouverture d'accès."
+                    },
+                    "procurement-rfp": {
+                        title: "Entrée achats et RFP",
+                        description: "Localise les flux procurement, RFP et proposal utilisés par les équipes opérations ou achats."
+                    },
+                    "returns-warranty": {
+                        title: "Entrée retours et garantie",
+                        description: "Recherche les formulaires return, warranty et RMA revus par les équipes opérations client."
                     }
                 }
             };
@@ -3232,7 +3448,7 @@
                             point(labels.watch, "备注要服务后续验证和报告，不要只写“看起来有用”。")
                         ]),
                         makeAnalysisItem("5. 扩展但不要发散", "流程", "搜索引擎 / 分类 / 查询修饰", [
-                            point(labels.purpose, "同一模板可以换搜索引擎，或切到相邻分类继续发现，例如 Support -> Attachment Forms -> Report Pages。"),
+                            point(labels.purpose, "同一模板可以换搜索引擎，或切到相邻分类继续发现，例如 Support Ticket Intake -> Support Attachment Intake -> Incident Report Intake。"),
                             point(labels.triage, "每次扩展只改变一个变量：换引擎、换模板或打开参数偏向。这样结果更容易比较。"),
                             point(labels.watch, "不要无限叠加查询限制。查询越复杂，越可能错过简单但真实的入口。")
                         ])
